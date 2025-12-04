@@ -75,6 +75,18 @@ export const Layout = ({ children, activeTab, onNavigate, language = 'en' }) => 
                             active={false}
                             onClick={() => onNavigate('league', 61)}
                         />
+                        <SidebarItem
+                            icon={Trophy}
+                            label="Eredivisie"
+                            active={false}
+                            onClick={() => onNavigate('league', 88)}
+                        />
+                        <SidebarItem
+                            icon={Trophy}
+                            label="J League"
+                            active={false}
+                            onClick={() => onNavigate('league', 98)}
+                        />
                     </div>
 
                     <SidebarItem
