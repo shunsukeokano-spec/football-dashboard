@@ -118,6 +118,35 @@ export const TeamDetails = ({ teamId, onClose, language = 'en' }) => {
                                         </div>
                                     )}
                                 </div>
+
+                                {/* League Standing & Quick Links */}
+                                {details.standing && (
+                                    <div className="mt-4 pt-4 border-t border-border flex flex-wrap items-center gap-4">
+                                        <div className="flex items-center space-x-2">
+                                            <Trophy size={16} className="text-primary" />
+                                            <span className="text-sm">
+                                                <span className="text-muted-foreground">League Position:</span>{' '}
+                                                <button
+                                                    onClick={() => details.onLeagueClick && details.onLeagueClick(details.leagueId)}
+                                                    className="font-bold text-primary hover:underline"
+                                                >
+                                                    #{details.standing.position} in {details.standing.leagueName}
+                                                </button>
+                                            </span>
+                                        </div>
+                                        <a
+                                            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(details.name + ' highlights')}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center space-x-2 text-sm text-red-500 hover:text-red-400 transition-colors"
+                                        >
+                                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                                            </svg>
+                                            <span>Watch Highlights</span>
+                                        </a>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

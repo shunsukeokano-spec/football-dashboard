@@ -1,8 +1,8 @@
 import React from 'react';
-import { X, Moon, Sun, Globe, Bell, ChevronRight } from 'lucide-react';
+import { X, Moon, Sun, Globe, Bell } from 'lucide-react';
 import { translations } from '../utils/translations';
 
-export const SettingsModal = ({ onClose, language, setLanguage, theme, setTheme }) => {
+export const SettingsModal = ({ onClose, language, setLanguage, theme, setTheme, isWorldCupMode, onToggleWorldCup }) => {
     const t = translations[language] || translations['en'];
 
     return (
@@ -70,18 +70,44 @@ export const SettingsModal = ({ onClose, language, setLanguage, theme, setTheme 
                     </div>
 
                     {/* Notifications (Mock) */}
-                    <div className="space-y-3 opacity-60 pointer-events-none relative">
-                        <div className="absolute inset-0 flex items-center justify-center z-10">
-                            <span className="bg-background/80 backdrop-blur px-3 py-1 rounded-full text-xs font-bold border border-border">Coming Soon</span>
+                    <div className="space-y-3 relative">
+                        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                            {/* Removed overlay for WC toggle accessibility */}
                         </div>
-                        <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Notifications</label>
-                        <div className="flex items-center justify-between p-3 rounded-xl border border-border">
-                            <div className="flex items-center space-x-3">
-                                <Bell size={20} />
-                                <span>Match Alerts</span>
+
+                        {/* Notifications Section - Disabled */}
+                        <div className="opacity-60 pointer-events-none">
+                            <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Notifications</label>
+                            <div className="flex items-center justify-between p-3 rounded-xl border border-border mt-2">
+                                <div className="flex items-center space-x-3">
+                                    <Bell size={20} />
+                                    <span>Match Alerts</span>
+                                </div>
+                                <div className="w-10 h-6 bg-muted rounded-full relative">
+                                    <div className="absolute left-1 top-1 w-4 h-4 bg-background rounded-full shadow-sm"></div>
+                                </div>
                             </div>
-                            <div className="w-10 h-6 bg-muted rounded-full relative">
-                                <div className="absolute left-1 top-1 w-4 h-4 bg-background rounded-full shadow-sm"></div>
+                            <div className="mt-2 text-center">
+                                <span className="bg-muted px-2 py-1 rounded text-[10px] font-bold uppercase">Coming Soon</span>
+                            </div>
+                        </div>
+
+                        {/* World Cup Mode Toggle - Enabled */}
+                        <div className="pt-4 border-t border-border mt-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                    <Globe size={20} className="text-muted-foreground" />
+                                    <div>
+                                        <span className="block font-medium">World Cup Mode</span>
+                                        <span className="text-xs text-muted-foreground">Enable tournament features</span>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={onToggleWorldCup}
+                                    className={`w-12 h-6 rounded-full transition-colors relative ${isWorldCupMode ? 'bg-blue-600' : 'bg-muted'}`}
+                                >
+                                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${isWorldCupMode ? 'left-7' : 'left-1'}`} />
+                                </button>
                             </div>
                         </div>
                     </div>

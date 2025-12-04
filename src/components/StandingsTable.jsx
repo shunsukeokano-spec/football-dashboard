@@ -10,12 +10,12 @@ export const StandingsTable = ({ standings, onTeamClick }) => {
         );
     }
 
-    // Determine zone colors based on position
+    // Determine zone colors based on position (subtle background instead of borders)
     const getZoneColor = (position) => {
-        if (position <= 4) return 'border-l-4 border-l-green-500 bg-green-500/5'; // Champions League
-        if (position <= 6) return 'border-l-4 border-l-orange-500 bg-orange-500/5'; // Europa League
-        if (position >= standings.length - 2) return 'border-l-4 border-l-red-500 bg-red-500/5'; // Relegation
-        return 'border-l-4 border-l-transparent';
+        if (position <= 4) return 'bg-green-500/10 hover:bg-green-500/20'; // Champions League
+        if (position <= 6) return 'bg-orange-500/10 hover:bg-orange-500/20'; // Europa League
+        if (position >= standings.length - 2) return 'bg-red-500/10 hover:bg-red-500/20'; // Relegation
+        return 'hover:bg-muted/30';
     };
 
     // Parse form string to show last 5 matches
@@ -73,7 +73,7 @@ export const StandingsTable = ({ standings, onTeamClick }) => {
                         <tr
                             key={team.teamId}
                             onClick={() => onTeamClick && onTeamClick(team.teamId)}
-                            className={`border-b border-border hover:bg-muted/30 transition-colors cursor-pointer ${getZoneColor(team.position)}`}
+                            className={`border-b border-border transition-colors cursor-pointer ${getZoneColor(team.position)}`}
                         >
                             <td className="p-3 font-semibold text-muted-foreground">{team.position}</td>
                             <td className="p-3">

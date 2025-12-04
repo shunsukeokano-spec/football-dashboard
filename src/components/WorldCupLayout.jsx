@@ -1,0 +1,121 @@
+import React from 'react';
+import { LayoutDashboard, Trophy, Calendar, Settings, Globe, Shield } from 'lucide-react';
+import { translations } from '../utils/translations';
+
+const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
+    <div
+        onClick={onClick}
+        className={`flex items-center space-x-3 px-4 py-3 rounded-lg cursor-pointer transition-all duration-300 ${active
+                ? 'bg-gradient-to-r from-slate-200 to-slate-300 text-slate-900 shadow-md shadow-slate-500/20'
+                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            }`}
+    >
+        <Icon size={20} className={active ? "text-slate-900" : "text-slate-400"} />
+        <span className="font-medium tracking-wide">{label}</span>
+    </div>
+);
+
+export const WorldCupLayout = ({ children, activeTab, onNavigate, language = 'en' }) => {
+    const t = translations[language] || translations['en'];
+
+    return (
+        <div className="flex h-screen w-full overflow-hidden bg-[#0f172a] text-slate-200 font-sans selection:bg-slate-500 selection:text-white">
+            {/* Sidebar - Matte Platinum Theme */}
+            <div className="w-64 bg-[#1e293b] border-r border-slate-700 flex flex-col hidden md:flex shadow-2xl z-10">
+                {/* Header */}
+                <div className="p-6 flex items-center space-x-3 border-b border-slate-700/50">
+                    <div className="w-10 h-10 bg-gradient-to-br from-slate-300 to-slate-500 rounded-lg flex items-center justify-center shadow-lg shadow-slate-500/20">
+                        <Globe className="text-slate-900" size={24} />
+                    </div>
+                    <div>
+                        <span className="font-bold text-xl tracking-wider text-slate-100">WORLD CUP</span>
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Official Hub</p>
+                    </div>
+                </div>
+
+                {/* Navigation */}
+                <nav className="flex-1 px-4 space-y-2 py-6">
+                    <SidebarItem
+                        icon={LayoutDashboard}
+                        label="Overview"
+                        active={activeTab === 'dashboard'}
+                        onClick={() => onNavigate('dashboard')}
+                    />
+                    <SidebarItem
+                        icon={Trophy}
+                        label="Knockout Bracket"
+                        active={activeTab === 'bracket'}
+                        onClick={() => onNavigate('bracket')}
+                    />
+                    <SidebarItem
+                        icon={Shield}
+                        label="Group Stage"
+                        active={activeTab === 'groups'}
+                        onClick={() => onNavigate('groups')}
+                    />
+                    <SidebarItem
+                        icon={Calendar}
+                        label="Schedule"
+                        active={activeTab === 'schedule'}
+                        onClick={() => onNavigate('schedule')}
+                    />
+
+                    <div className="pt-6 pb-2">
+                        <div className="h-px bg-gradient-to-r from-transparent via-slate-600 to-transparent mx-4"></div>
+                    </div>
+
+                    <SidebarItem
+                        icon={Settings}
+                        label={t.settings}
+                        active={false}
+                        onClick={() => onNavigate('settings')}
+                    />
+                </nav>
+
+                {/* Footer */}
+                <div className="p-4 border-t border-slate-700/50 bg-[#1e293b]">
+                    <div className="flex items-center space-x-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center">
+                            <span className="font-bold text-xs text-slate-900">WC</span>
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-slate-200">Tournament Mode</p>
+                            <p className="text-xs text-slate-500">Active</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col overflow-hidden relative">
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-5 pointer-events-none"
+                    style={{
+                        backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)`,
+                        backgroundSize: '24px 24px'
+                    }}
+                ></div>
+
+                {/* Top Bar (Mobile/Tablet only usually, but good for context) */}
+                <div className="h-16 border-b border-slate-700/50 flex items-center justify-between px-8 bg-[#1e293b]/80 backdrop-blur-md z-10">
+                    <h1 className="text-lg font-medium tracking-wide text-slate-200">
+                        {activeTab === 'dashboard' && 'Tournament Overview'}
+                        {activeTab === 'bracket' && 'Knockout Stage'}
+                        {activeTab === 'groups' && 'Group Standings'}
+                        {activeTab === 'schedule' && 'Match Schedule'}
+                    </h1>
+                    <div className="flex items-center space-x-4">
+                        <div className="px-3 py-1 rounded-full border border-slate-600 bg-slate-800/50 text-xs font-medium text-slate-400">
+                            2026 Season
+                        </div>
+                    </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                    {children}
+                </div>
+            </div>
+        </div>
+    );
+};

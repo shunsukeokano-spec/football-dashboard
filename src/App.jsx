@@ -4,9 +4,11 @@ import { MatchCard } from './components/MatchCard';
 import { MatchDetails } from './components/MatchDetails';
 import { TeamDetails } from './components/TeamDetails';
 import { Schedule } from './components/Schedule';
+import { Schedule } from './components/Schedule';
 import { SettingsModal } from './components/SettingsModal';
 import { FavoriteTeams } from './components/FavoriteTeams';
 import { LeaguePage } from './components/LeaguePage';
+import { WorldCupLayout } from './components/WorldCupLayout';
 import { subscribeToUpdates } from './services/apiDataService';
 import { translations } from './utils/translations';
 
@@ -22,13 +24,15 @@ function App() {
   // Settings state
   const [language, setLanguage] = useState(() => localStorage.getItem('football_lang') || 'en');
   const [theme, setTheme] = useState(() => localStorage.getItem('football_theme') || 'dark');
+  const [isWorldCupMode, setIsWorldCupMode] = useState(() => localStorage.getItem('football_wc_mode') === 'true');
 
   // Persist settings
   useEffect(() => {
     localStorage.setItem('football_lang', language);
     localStorage.setItem('football_theme', theme);
+    localStorage.setItem('football_wc_mode', isWorldCupMode);
     document.documentElement.className = theme;
-  }, [language, theme]);
+  }, [language, theme, isWorldCupMode]);
 
   useEffect(() => {
     const unsubscribe = subscribeToUpdates((data) => {
@@ -63,137 +67,160 @@ function App() {
 
   return (
     <div className={`flex h-screen bg-background text-foreground ${theme}`}>
-      <Layout
-        activeTab={currentView}
-        onNavigate={handleNavigation}
-        language={language}
-      >
-        {currentView === 'dashboard' ? (
-          <div className="flex-1 overflow-y-auto bg-background p-4 md:p-8 custom-scrollbar">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-8">
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight mb-1">{t.dashboard}</h1>
-                <p className="text-muted-foreground">{t.welcome}</p>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="hidden md:flex items-center space-x-2 bg-muted/50 px-3 py-1.5 rounded-lg">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                  <span className="text-sm font-medium">{liveMatches.length} {t.live}</span>
+      {isWorldCupMode ? (
+        <WorldCupLayout
+          activeTab={currentView}
+          onNavigate={handleNavigation}
+          language={language}
+        >
+          {/* World Cup Content Placeholder */}
+          <div className="p-8">
+            <h2 className="text-2xl font-bold mb-4 text-slate-100">World Cup Dashboard</h2>
+            <p className="text-slate-400">Tournament features coming soon...</p>
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Placeholder Cards */}
+              <div className="bg-[#1e293b] p-6 rounded-xl border border-slate-700 shadow-lg">
+                <h3 className="font-bold text-slate-200 mb-2">Group A</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm text-slate-400"><span>USA</span><span>0</span></div>
+                  <div className="flex justify-between text-sm text-slate-400"><span>Wales</span><span>0</span></div>
                 </div>
               </div>
             </div>
+          </div>
+        </WorldCupLayout>
+      ) : (
+        <Layout
+          activeTab={currentView}
+          onNavigate={handleNavigation}
+          language={language}
+        >
+          {currentView === 'dashboard' ? (
+            <div className="flex-1 overflow-y-auto bg-background p-4 md:p-8 custom-scrollbar">
+              {/* Header */}
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight mb-1">{t.dashboard}</h1>
+                  <p className="text-muted-foreground">{t.welcome}</p>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="hidden md:flex items-center space-x-2 bg-muted/50 px-3 py-1.5 rounded-lg">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span className="text-sm font-medium">{liveMatches.length} {t.live}</span>
+                  </div>
+                </div>
+              </div>
 
-            {/* Favorite Teams */}
-            <FavoriteTeams onTeamClick={handleTeamClick} language={language} />
+              {/* Favorite Teams */}
+              <FavoriteTeams onTeamClick={handleTeamClick} language={language} />
 
-            {/* Live Matches */}
-            {liveMatches.length > 0 && (
-              <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {/* Live Matches */}
+              {liveMatches.length > 0 && (
+                <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold flex items-center">
+                      <span className="w-1.5 h-6 bg-red-500 rounded-full mr-3"></span>
+                      {t.liveMatches}
+                    </h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {liveMatches.map(match => (
+                      <MatchCard
+                        key={match.id}
+                        match={match}
+                        onClick={() => setSelectedMatchId(match.id)}
+                        onTeamClick={handleTeamClick}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Upcoming Matches */}
+              <div className="mb-10 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold flex items-center">
-                    <span className="w-1.5 h-6 bg-red-500 rounded-full mr-3"></span>
-                    {t.liveMatches}
+                    <span className="w-1.5 h-6 bg-primary rounded-full mr-3"></span>
+                    {t.upcomingMatches}
                   </h2>
+                  <div className="flex items-center space-x-2">
+                    {matches.length > 0 && (
+                      <select className="bg-card border border-border text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option>All Leagues</option>
+                        {[...new Set(matches.map(m => m.league))].map(league => (
+                          <option key={league}>{league}</option>
+                        ))}
+                      </select>
+                    )}
+                    <button className="text-sm text-primary hover:underline">{t.viewAll}</button>
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {liveMatches.map(match => (
-                    <MatchCard
-                      key={match.id}
-                      match={match}
-                      onClick={() => setSelectedMatchId(match.id)}
-                      onTeamClick={handleTeamClick}
-                    />
-                  ))}
-                </div>
+                {upcomingMatches.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {upcomingMatches.map(match => (
+                      <MatchCard
+                        key={match.id}
+                        match={match}
+                        onClick={() => setSelectedMatchId(match.id)}
+                        onTeamClick={handleTeamClick}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-10 text-muted-foreground bg-muted/20 rounded-xl border border-dashed border-border">
+                    No upcoming matches scheduled for today.
+                  </div>
+                )}
               </div>
-            )}
 
-            {/* Upcoming Matches */}
-            <div className="mb-10 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold flex items-center">
-                  <span className="w-1.5 h-6 bg-primary rounded-full mr-3"></span>
-                  {t.upcomingMatches}
-                </h2>
-                <div className="flex items-center space-x-2">
-                  {matches.length > 0 && (
-                    <select className="bg-card border border-border text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary">
-                      <option>All Leagues</option>
-                      {[...new Set(matches.map(m => m.league))].map(league => (
-                        <option key={league}>{league}</option>
-                      ))}
-                    </select>
-                  )}
-                  <button className="text-sm text-primary hover:underline">{t.viewAll}</button>
+              {/* Completed Matches */}
+              {completedMatches.length > 0 && (
+                <div className="mb-10 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold flex items-center">
+                      <span className="w-1.5 h-6 bg-muted-foreground rounded-full mr-3"></span>
+                      {t.completedMatches}
+                    </h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {completedMatches.map(match => (
+                      <MatchCard
+                        key={match.id}
+                        match={match}
+                        onClick={() => setSelectedMatchId(match.id)}
+                        onTeamClick={handleTeamClick}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-              {upcomingMatches.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {upcomingMatches.map(match => (
-                    <MatchCard
-                      key={match.id}
-                      match={match}
-                      onClick={() => setSelectedMatchId(match.id)}
-                      onTeamClick={handleTeamClick}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-10 text-muted-foreground bg-muted/20 rounded-xl border border-dashed border-border">
-                  No upcoming matches scheduled for today.
+              )}
+
+              {/* Empty State - when no matches at all */}
+              {!loading && liveMatches.length === 0 && upcomingMatches.length === 0 && completedMatches.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="text-6xl mb-4">⚽</div>
+                  <h3 className="text-xl font-bold mb-2">No Matches Available</h3>
+                  <p className="text-muted-foreground mb-4">
+                    The API isn't returning any matches right now. This could be due to:
+                  </p>
+                  <ul className="text-sm text-muted-foreground space-y-1 mb-6">
+                    <li>• API rate limit reached (100 requests/day)</li>
+                    <li>• No matches scheduled for recent dates</li>
+                    <li>• Temporary API service issue</li>
+                  </ul>
+                  <p className="text-sm text-primary">
+                    Try the <strong>Schedule</strong> view to browse specific dates
+                  </p>
                 </div>
               )}
             </div>
-
-            {/* Completed Matches */}
-            {completedMatches.length > 0 && (
-              <div className="mb-10 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold flex items-center">
-                    <span className="w-1.5 h-6 bg-muted-foreground rounded-full mr-3"></span>
-                    {t.completedMatches}
-                  </h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {completedMatches.map(match => (
-                    <MatchCard
-                      key={match.id}
-                      match={match}
-                      onClick={() => setSelectedMatchId(match.id)}
-                      onTeamClick={handleTeamClick}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Empty State - when no matches at all */}
-            {!loading && liveMatches.length === 0 && upcomingMatches.length === 0 && completedMatches.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="text-6xl mb-4">⚽</div>
-                <h3 className="text-xl font-bold mb-2">No Matches Available</h3>
-                <p className="text-muted-foreground mb-4">
-                  The API isn't returning any matches right now. This could be due to:
-                </p>
-                <ul className="text-sm text-muted-foreground space-y-1 mb-6">
-                  <li>• API rate limit reached (100 requests/day)</li>
-                  <li>• No matches scheduled for recent dates</li>
-                  <li>• Temporary API service issue</li>
-                </ul>
-                <p className="text-sm text-primary">
-                  Try the <strong>Schedule</strong> view to browse specific dates
-                </p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <Schedule
-            language={language}
-            onMatchClick={setSelectedMatchId}
-          />
-        )}
-      </Layout>
+          ) : (
+            <Schedule
+              language={language}
+              onMatchClick={setSelectedMatchId}
+            />
+          )}
+        </Layout>
 
       {/* Modals */}
       {selectedMatchId && (
@@ -209,6 +236,10 @@ function App() {
         <TeamDetails
           teamId={selectedTeamId}
           onClose={() => setSelectedTeamId(null)}
+          onLeagueClick={(leagueId) => {
+            setSelectedTeamId(null);
+            setSelectedLeagueId(leagueId);
+          }}
           language={language}
         />
       )}
@@ -231,6 +262,8 @@ function App() {
           setLanguage={setLanguage}
           theme={theme}
           setTheme={setTheme}
+          isWorldCupMode={isWorldCupMode}
+          onToggleWorldCup={() => setIsWorldCupMode(!isWorldCupMode)}
         />
       )}
     </div>
