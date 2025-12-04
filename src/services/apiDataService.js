@@ -507,11 +507,55 @@ export const fetchTopScorers = async (leagueId, season = 2024, limit = 10) => {
             appearances: item.statistics[0].games.appearences || 0
         }));
 
-        cacheUtils.set(cacheKey, topScorers);
         return topScorers;
     } catch (error) {
         console.error('Error fetching top scorers:', error);
         return [];
+    }
+};
+
+// Fetch player statistics
+export const fetchPlayerStats = async (playerId, season = 2024) => {
+    const cacheKey = `player_${playerId}_${season}`;
+
+    // Check cache first (24 hour cache for player stats)
+    const cached = cacheUtils.get(cacheKey);
+    if (cached) {
+        console.log(`Using cached stats for player ${playerId}`);
+        return cached;
+    }
+
+    try {
+        console.log(`Fetching stats for player ${playerId}, season ${season}...`);
+        const response = await fetch(
+            `${API_BASE_URL}/players?id=${playerId}&season=${season}`,
+            {
+                headers: {
+                    'x-apisports-key': API_KEY
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`API returned ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.response || data.response.length === 0) {
+            return null;
+        }
+
+        const playerData = data.response[0];
+
+        // Cache for 24 hours (stats don't change that often)
+        // Note: cacheUtils uses 5 mins default, but we'll stick with that for now to keep it simple
+        cacheUtils.set(cacheKey, playerData);
+
+        return playerData;
+    } catch (error) {
+        console.error('Error fetching player stats:', error);
+        return null;
     }
 };
 
