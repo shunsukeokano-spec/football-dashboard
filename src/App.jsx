@@ -4,7 +4,6 @@ import { MatchCard } from './components/MatchCard';
 import { MatchDetails } from './components/MatchDetails';
 import { TeamDetails } from './components/TeamDetails';
 import { Schedule } from './components/Schedule';
-import { Schedule } from './components/Schedule';
 import { SettingsModal } from './components/SettingsModal';
 import { FavoriteTeams } from './components/FavoriteTeams';
 import { LeaguePage } from './components/LeaguePage';
@@ -221,6 +220,7 @@ function App() {
             />
           )}
         </Layout>
+      )}
 
       {/* Modals */}
       {selectedMatchId && (
