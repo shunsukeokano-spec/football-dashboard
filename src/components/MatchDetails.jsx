@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { X, Calendar, MapPin, User, Shirt, Activity, Clock } from 'lucide-react';
 import { fetchMatchDetails } from '../services/apiDataService';
 import { translations } from '../utils/translations';
+import { SocialFeed } from './SocialFeed';
 
 export const MatchDetails = ({ matchId, onClose, onTeamClick, language = 'en' }) => {
     const [details, setDetails] = useState(null);
@@ -118,6 +119,13 @@ export const MatchDetails = ({ matchId, onClose, onTeamClick, language = 'en' })
                             >
                                 {t.matchDetails.stats}
                                 {activeTab === 'stats' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"></div>}
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('social')}
+                                className={`flex-1 py-4 text-sm font-medium transition-colors relative ${activeTab === 'social' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                            >
+                                Social
+                                {activeTab === 'social' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"></div>}
                             </button>
                         </div>
 
@@ -286,6 +294,17 @@ export const MatchDetails = ({ matchId, onClose, onTeamClick, language = 'en' })
                                     ) : (
                                         <div className="text-center text-muted-foreground py-10">{t.matchDetails.noStats}</div>
                                     )}
+                                </div>
+                            )}
+
+                            {/* Social Tab */}
+                            {activeTab === 'social' && (
+                                <div className="p-6">
+                                    <SocialFeed
+                                        homeTeam={details.homeTeam}
+                                        awayTeam={details.awayTeam}
+                                        matchDate={details.date}
+                                    />
                                 </div>
                             )}
                         </div>
