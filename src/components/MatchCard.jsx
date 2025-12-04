@@ -1,18 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { Clock, EyeOff } from 'lucide-react';
+import React from 'react';
+import { Clock, EyeOff, Star } from 'lucide-react';
 import { translations } from '../utils/translations';
 
-export const MatchCard = ({ match, language = 'en', onClick }) => {
+export const MatchCard = ({ match, language = 'en', onClick, favoriteTeams = [] }) => {
     const isLive = match.status === 'LIVE';
     const t = translations[language] || translations['en'];
-    const [hasFavoriteTeam, setHasFavoriteTeam] = useState(false);
 
-    useEffect(() => {
-        // Check if either team is favorited
-        const favorites = JSON.parse(localStorage.getItem('favoriteTeams') || '[]');
-        const isFavorited = favorites.includes(match.homeTeam.id) || favorites.includes(match.awayTeam.id);
-        setHasFavoriteTeam(isFavorited);
-    }, [match.homeTeam.id, match.awayTeam.id]);
+    const isHomeFavorite = favoriteTeams.includes(match.homeTeam.id);
+    const isAwayFavorite = favoriteTeams.includes(match.awayTeam.id);
+    const hasFavoriteTeam = isHomeFavorite || isAwayFavorite;
 
     // Hide score for completed matches with favorited teams
     const shouldHideScore = hasFavoriteTeam && match.status === 'FT';
@@ -40,7 +36,8 @@ export const MatchCard = ({ match, language = 'en', onClick }) => {
 
             <div className="flex justify-between items-center mb-4">
                 {/* Home Team */}
-                <div className="flex flex-col items-center w-1/3">
+                <div className="flex flex-col items-center w-1/3 relative">
+                    {isHomeFavorite && <div className="absolute -top-1 -right-1 text-yellow-500"><Star size={12} fill="currentColor" /></div>}
                     <div className={`w-12 h-12 rounded-full mb-2 flex items-center justify-center text-white font-bold text-sm shadow-lg ${match.homeTeam.color}`}>
                         {match.homeTeam.short}
                     </div>
@@ -65,7 +62,8 @@ export const MatchCard = ({ match, language = 'en', onClick }) => {
                 </div>
 
                 {/* Away Team */}
-                <div className="flex flex-col items-center w-1/3">
+                <div className="flex flex-col items-center w-1/3 relative">
+                    {isAwayFavorite && <div className="absolute -top-1 -right-1 text-yellow-500"><Star size={12} fill="currentColor" /></div>}
                     <div className={`w-12 h-12 rounded-full mb-2 flex items-center justify-center text-white font-bold text-sm shadow-lg ${match.awayTeam.color}`}>
                         {match.awayTeam.short}
                     </div>

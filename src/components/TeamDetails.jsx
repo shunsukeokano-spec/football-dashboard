@@ -1,37 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { X, MapPin, Users, Shirt, Star } from 'lucide-react';
+import { X, MapPin, Users, Shirt, Star, Trophy } from 'lucide-react';
 import { fetchTeamDetails } from '../services/apiDataService';
 import { translations } from '../utils/translations';
 import { PlayerModal } from './PlayerModal';
 
-export const TeamDetails = ({ teamId, onClose, language = 'en' }) => {
+export const TeamDetails = ({ teamId, onClose, language = 'en', favoriteTeams = [], toggleFavorite }) => {
     const [details, setDetails] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedPlayer, setSelectedPlayer] = useState(null);
-    const [isFavorite, setIsFavorite] = useState(false);
+    const isFavorite = favoriteTeams.includes(teamId);
     const t = translations[language] || translations['en'];
 
-    // Load favorite status from localStorage
-    useEffect(() => {
-        const favorites = JSON.parse(localStorage.getItem('favoriteTeams') || '[]');
-        setIsFavorite(favorites.includes(teamId));
-    }, [teamId]);
-
-    const toggleFavorite = () => {
-        const favorites = JSON.parse(localStorage.getItem('favoriteTeams') || '[]');
-        let newFavorites;
-
-        if (isFavorite) {
-            newFavorites = favorites.filter(id => id !== teamId);
-        } else {
-            newFavorites = [...favorites, teamId];
+    const handleToggleFavorite = () => {
+        if (toggleFavorite) {
+            toggleFavorite(teamId);
         }
-
-        localStorage.setItem('favoriteTeams', JSON.stringify(newFavorites));
-        setIsFavorite(!isFavorite);
-
-        // Dispatch custom event to notify FavoriteTeams component
-        window.dispatchEvent(new Event('favoritesUpdated'));
     };
 
     useEffect(() => {
@@ -66,7 +49,7 @@ export const TeamDetails = ({ teamId, onClose, language = 'en' }) => {
                 <div className="relative bg-muted/30 p-6 border-b border-border">
                     <div className="absolute top-4 right-4 flex items-center space-x-2">
                         <button
-                            onClick={toggleFavorite}
+                            onClick={handleToggleFavorite}
                             className={`p-2 rounded-full transition-all ${isFavorite ? 'bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30' : 'hover:bg-muted text-muted-foreground hover:text-yellow-500'}`}
                             title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                         >

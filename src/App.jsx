@@ -24,14 +24,20 @@ function App() {
   const [language, setLanguage] = useState(() => localStorage.getItem('football_lang') || 'en');
   const [theme, setTheme] = useState(() => localStorage.getItem('football_theme') || 'dark');
   const [isWorldCupMode, setIsWorldCupMode] = useState(() => localStorage.getItem('football_wc_mode') === 'true');
+  const [favoriteTeams, setFavoriteTeams] = useState(() => {
+    const saved = localStorage.getItem('football_favorites');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   // Persist settings
   useEffect(() => {
     localStorage.setItem('football_lang', language);
     localStorage.setItem('football_theme', theme);
     localStorage.setItem('football_wc_mode', isWorldCupMode);
+    localStorage.setItem('football_favorites', JSON.stringify(favoriteTeams));
     document.documentElement.className = theme;
-  }, [language, theme, isWorldCupMode]);
+  }, [language, theme, isWorldCupMode, favoriteTeams]);
 
   useEffect(() => {
     const unsubscribe = subscribeToUpdates((data) => {
@@ -44,9 +50,22 @@ function App() {
 
   const t = translations[language] || translations['en'];
 
-  const liveMatches = matches.filter(m => m.status === 'LIVE');
-  const upcomingMatches = matches.filter(m => m.status === 'UPCOMING');
-  const completedMatches = matches.filter(m => m.status === 'FT');
+  const toggleFavorite = (teamId) => {
+    setFavoriteTeams(prev => {
+      if (prev.includes(teamId)) {
+        return prev.filter(id => id !== teamId);
+      }
+      return [...prev, teamId];
+    });
+  };
+
+  const filteredMatches = showFavoritesOnly
+    ? matches.filter(m => favoriteTeams.includes(m.homeTeam.id) || favoriteTeams.includes(m.awayTeam.id))
+    : matches;
+
+  const liveMatches = filteredMatches.filter(m => m.status === 'LIVE');
+  const upcomingMatches = filteredMatches.filter(m => m.status === 'UPCOMING');
+  const completedMatches = filteredMatches.filter(m => m.status === 'FT');
 
   const handleTeamClick = (teamId) => {
     setSelectedMatchId(null); // Close match details if open
@@ -103,6 +122,13 @@ function App() {
                   <p className="text-muted-foreground">{t.welcome}</p>
                 </div>
                 <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                    className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg border transition-colors ${showFavoritesOnly ? 'bg-yellow-500/10 border-yellow-500/50 text-yellow-500' : 'bg-card border-border text-muted-foreground hover:text-foreground'}`}
+                  >
+                    <span className="text-lg">{showFavoritesOnly ? '★' : '☆'}</span>
+                    <span className="text-sm font-medium">Favorites</span>
+                  </button>
                   <div className="hidden md:flex items-center space-x-2 bg-muted/50 px-3 py-1.5 rounded-lg">
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                     <span className="text-sm font-medium">{liveMatches.length} {t.live}</span>
@@ -129,6 +155,7 @@ function App() {
                         match={match}
                         onClick={() => setSelectedMatchId(match.id)}
                         onTeamClick={handleTeamClick}
+                        favoriteTeams={favoriteTeams}
                       />
                     ))}
                   </div>
@@ -162,6 +189,7 @@ function App() {
                         match={match}
                         onClick={() => setSelectedMatchId(match.id)}
                         onTeamClick={handleTeamClick}
+                        favoriteTeams={favoriteTeams}
                       />
                     ))}
                   </div>
@@ -188,6 +216,7 @@ function App() {
                         match={match}
                         onClick={() => setSelectedMatchId(match.id)}
                         onTeamClick={handleTeamClick}
+                        favoriteTeams={favoriteTeams}
                       />
                     ))}
                   </div>
@@ -229,6 +258,8 @@ function App() {
           onClose={() => setSelectedMatchId(null)}
           onTeamClick={handleTeamClick}
           language={language}
+          favoriteTeams={favoriteTeams}
+          toggleFavorite={toggleFavorite}
         />
       )}
 
@@ -241,6 +272,8 @@ function App() {
             setSelectedLeagueId(leagueId);
           }}
           language={language}
+          favoriteTeams={favoriteTeams}
+          toggleFavorite={toggleFavorite}
         />
       )}
 
