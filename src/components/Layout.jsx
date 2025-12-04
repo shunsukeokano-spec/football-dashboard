@@ -29,7 +29,7 @@ export const Layout = ({ children, activeTab, onNavigate, language = 'en' }) => 
                 <nav className="flex-1 px-4 space-y-2 py-4">
                     <SidebarItem
                         icon={LayoutDashboard}
-                        label={t.dashboard}
+                        label="Matches"
                         active={activeTab === 'dashboard'}
                         onClick={() => onNavigate('dashboard')}
                     />

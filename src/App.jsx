@@ -162,6 +162,25 @@ function App() {
                 </div>
               </div>
             )}
+
+            {/* Empty State - when no matches at all */}
+            {!loading && liveMatches.length === 0 && upcomingMatches.length === 0 && completedMatches.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="text-6xl mb-4">⚽</div>
+                <h3 className="text-xl font-bold mb-2">No Matches Available</h3>
+                <p className="text-muted-foreground mb-4">
+                  The API isn't returning any matches right now. This could be due to:
+                </p>
+                <ul className="text-sm text-muted-foreground space-y-1 mb-6">
+                  <li>• API rate limit reached (100 requests/day)</li>
+                  <li>• No matches scheduled for recent dates</li>
+                  <li>• Temporary API service issue</li>
+                </ul>
+                <p className="text-sm text-primary">
+                  Try the <strong>Schedule</strong> view to browse specific dates
+                </p>
+              </div>
+            )}
           </div>
         ) : (
           <Schedule
