@@ -6,6 +6,7 @@ import { TeamDetails } from './components/TeamDetails';
 import { Schedule } from './components/Schedule';
 import { SettingsModal } from './components/SettingsModal';
 import { FavoriteTeams } from './components/FavoriteTeams';
+import { LeaguePage } from './components/LeaguePage';
 import { subscribeToUpdates } from './services/apiDataService';
 import { translations } from './utils/translations';
 
@@ -14,6 +15,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [selectedMatchId, setSelectedMatchId] = useState(null);
   const [selectedTeamId, setSelectedTeamId] = useState(null);
+  const [selectedLeagueId, setSelectedLeagueId] = useState(null);
   const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' | 'schedule'
   const [showSettings, setShowSettings] = useState(false);
 
@@ -48,11 +50,14 @@ function App() {
     setSelectedTeamId(teamId);
   };
 
-  const handleNavigation = (view) => {
+  const handleNavigation = (view, leagueId) => {
     if (view === 'settings') {
       setShowSettings(true);
+    } else if (view === 'league') {
+      setSelectedLeagueId(leagueId);
     } else {
       setCurrentView(view);
+      setSelectedLeagueId(null);
     }
   };
 
@@ -204,6 +209,17 @@ function App() {
         <TeamDetails
           teamId={selectedTeamId}
           onClose={() => setSelectedTeamId(null)}
+          language={language}
+        />
+      )}
+
+      {selectedLeagueId && (
+        <LeaguePage
+          leagueId={selectedLeagueId}
+          onClose={() => setSelectedLeagueId(null)}
+          onTeamClick={handleTeamClick}
+          onMatchClick={setSelectedMatchId}
+          matches={matches}
           language={language}
         />
       )}

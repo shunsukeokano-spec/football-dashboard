@@ -39,6 +39,44 @@ export const Layout = ({ children, activeTab, onNavigate, language = 'en' }) => 
                         active={activeTab === 'schedule'}
                         onClick={() => onNavigate('schedule')}
                     />
+
+                    {/* Leagues Section */}
+                    <div className="pt-4">
+                        <p className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                            Leagues
+                        </p>
+                        <SidebarItem
+                            icon={Trophy}
+                            label="Premier League"
+                            active={false}
+                            onClick={() => onNavigate('league', 39)}
+                        />
+                        <SidebarItem
+                            icon={Trophy}
+                            label="La Liga"
+                            active={false}
+                            onClick={() => onNavigate('league', 140)}
+                        />
+                        <SidebarItem
+                            icon={Trophy}
+                            label="Bundesliga"
+                            active={false}
+                            onClick={() => onNavigate('league', 78)}
+                        />
+                        <SidebarItem
+                            icon={Trophy}
+                            label="Serie A"
+                            active={false}
+                            onClick={() => onNavigate('league', 135)}
+                        />
+                        <SidebarItem
+                            icon={Trophy}
+                            label="Ligue 1"
+                            active={false}
+                            onClick={() => onNavigate('league', 61)}
+                        />
+                    </div>
+
                     <SidebarItem
                         icon={Settings}
                         label={t.settings}

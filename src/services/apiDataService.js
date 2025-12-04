@@ -405,3 +405,115 @@ export const fetchTeamDetails = async (teamId, lang = 'en') => {
         return null;
     }
 };
+
+// Fetch league standings
+export const fetchLeagueStandings = async (leagueId, season = 2024) => {
+    const cacheKey = `standings_${leagueId}_${season}`;
+
+    // Check cache first (6 hour cache for standings)
+    const cached = cacheUtils.get(cacheKey);
+    if (cached) {
+        console.log(`Using cached standings for league ${leagueId}`);
+        return cached;
+    }
+
+    try {
+        console.log(`Fetching standings for league ${leagueId}, season ${season}...`);
+        const response = await fetch(
+            `${API_BASE_URL}/standings?league=${leagueId}&season=${season}`,
+            {
+                headers: {
+                    'x-apisports-key': API_KEY
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`API returned ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.response || data.response.length === 0) {
+            return null;
+        }
+
+        const standings = data.response[0].league.standings[0].map(team => ({
+            position: team.rank,
+            teamId: team.team.id,
+            teamName: team.team.name,
+            teamLogo: team.team.logo,
+            played: team.all.played,
+            won: team.all.win,
+            drawn: team.all.draw,
+            lost: team.all.lose,
+            goalsFor: team.all.goals.for,
+            goalsAgainst: team.all.goals.against,
+            goalDifference: team.goalsDiff,
+            points: team.points,
+            form: team.form // Last 5 matches (e.g., "WWDLW")
+        }));
+
+        cacheUtils.set(cacheKey, standings);
+        return standings;
+    } catch (error) {
+        console.error('Error fetching league standings:', error);
+        return null;
+    }
+};
+
+// Fetch top scorers
+export const fetchTopScorers = async (leagueId, season = 2024, limit = 10) => {
+    const cacheKey = `topscorers_${leagueId}_${season}`;
+
+    // Check cache first (6 hour cache for top scorers)
+    const cached = cacheUtils.get(cacheKey);
+    if (cached) {
+        console.log(`Using cached top scorers for league ${leagueId}`);
+        return cached;
+    }
+
+    try {
+        console.log(`Fetching top scorers for league ${leagueId}, season ${season}...`);
+        const response = await fetch(
+            `${API_BASE_URL}/players/topscorers?league=${leagueId}&season=${season}`,
+            {
+                headers: {
+                    'x-apisports-key': API_KEY
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`API returned ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.response || data.response.length === 0) {
+            return [];
+        }
+
+        const topScorers = data.response.slice(0, limit).map((item, index) => ({
+            rank: index + 1,
+            playerId: item.player.id,
+            playerName: item.player.name,
+            playerPhoto: item.player.photo,
+            teamId: item.statistics[0].team.id,
+            teamName: item.statistics[0].team.name,
+            teamLogo: item.statistics[0].team.logo,
+            goals: item.statistics[0].goals.total || 0,
+            assists: item.statistics[0].goals.assists || 0,
+            appearances: item.statistics[0].games.appearences || 0
+        }));
+
+        cacheUtils.set(cacheKey, topScorers);
+        return topScorers;
+    } catch (error) {
+        console.error('Error fetching top scorers:', error);
+        return [];
+    }
+};
+
+// Export league IDs for use in components
+export { LEAGUE_IDS, LEAGUE_NAMES };
