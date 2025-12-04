@@ -1,13 +1,13 @@
-import React from 'react';
-import { LayoutDashboard, Trophy, Calendar, Settings, Globe, Shield } from 'lucide-react';
+import React, { useState } from 'react';
+import { LayoutDashboard, Trophy, Calendar, Settings, Globe, Shield, Menu, X } from 'lucide-react';
 import { translations } from '../utils/translations';
 
 const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
     <div
         onClick={onClick}
         className={`flex items-center space-x-3 px-4 py-3 rounded-lg cursor-pointer transition-all duration-300 ${active
-                ? 'bg-gradient-to-r from-slate-200 to-slate-300 text-slate-900 shadow-md shadow-slate-500/20'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            ? 'bg-gradient-to-r from-slate-200 to-slate-300 text-slate-900 shadow-md shadow-slate-500/20'
+            : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
             }`}
     >
         <Icon size={20} className={active ? "text-slate-900" : "text-slate-400"} />
@@ -16,14 +16,41 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
 );
 
 export const WorldCupLayout = ({ children, activeTab, onNavigate, language = 'en' }) => {
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const t = translations[language] || translations['en'];
+
+    const handleMobileNavigate = (view, id) => {
+        onNavigate(view, id);
+        setIsMobileMenuOpen(false);
+    };
 
     return (
         <div className="flex h-screen w-full overflow-hidden bg-[#0f172a] text-slate-200 font-sans selection:bg-slate-500 selection:text-white">
-            {/* Sidebar - Matte Platinum Theme */}
-            <div className="w-64 bg-[#1e293b] border-r border-slate-700 flex flex-col hidden md:flex shadow-2xl z-10">
+            {/* Mobile Header */}
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-[#1e293b] border-b border-slate-700/50 z-40 flex items-center justify-between px-4">
+                <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-slate-300 to-slate-500 rounded-lg flex items-center justify-center shadow-lg shadow-slate-500/20">
+                        <Globe className="text-slate-900" size={20} />
+                    </div>
+                    <span className="font-bold text-lg tracking-wider text-slate-100">WORLD CUP</span>
+                </div>
+                <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-slate-200">
+                    {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+            </div>
+
+            {/* Mobile Sidebar Overlay */}
+            {isMobileMenuOpen && (
+                <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setIsMobileMenuOpen(false)} />
+            )}
+
+            {/* Sidebar (Desktop & Mobile) */}
+            <div className={`
+                fixed md:static inset-y-0 left-0 z-40 w-64 bg-[#1e293b] border-r border-slate-700 flex flex-col transition-transform duration-300 ease-in-out shadow-2xl
+                ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+            `}>
                 {/* Header */}
-                <div className="p-6 flex items-center space-x-3 border-b border-slate-700/50">
+                <div className="p-6 flex items-center space-x-3 border-b border-slate-700/50 hidden md:flex">
                     <div className="w-10 h-10 bg-gradient-to-br from-slate-300 to-slate-500 rounded-lg flex items-center justify-center shadow-lg shadow-slate-500/20">
                         <Globe className="text-slate-900" size={24} />
                     </div>
@@ -33,31 +60,39 @@ export const WorldCupLayout = ({ children, activeTab, onNavigate, language = 'en
                     </div>
                 </div>
 
+                {/* Mobile Menu Header */}
+                <div className="md:hidden p-6 flex items-center justify-between border-b border-slate-700/50">
+                    <span className="font-bold text-xl text-slate-100">Menu</span>
+                    <button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-400">
+                        <X size={20} />
+                    </button>
+                </div>
+
                 {/* Navigation */}
-                <nav className="flex-1 px-4 space-y-2 py-6">
+                <nav className="flex-1 px-4 space-y-2 py-6 overflow-y-auto">
                     <SidebarItem
                         icon={LayoutDashboard}
                         label="Overview"
                         active={activeTab === 'dashboard'}
-                        onClick={() => onNavigate('dashboard')}
+                        onClick={() => handleMobileNavigate('dashboard')}
                     />
                     <SidebarItem
                         icon={Trophy}
                         label="Knockout Bracket"
                         active={activeTab === 'bracket'}
-                        onClick={() => onNavigate('bracket')}
+                        onClick={() => handleMobileNavigate('bracket')}
                     />
                     <SidebarItem
                         icon={Shield}
                         label="Group Stage"
                         active={activeTab === 'groups'}
-                        onClick={() => onNavigate('groups')}
+                        onClick={() => handleMobileNavigate('groups')}
                     />
                     <SidebarItem
                         icon={Calendar}
                         label="Schedule"
                         active={activeTab === 'schedule'}
-                        onClick={() => onNavigate('schedule')}
+                        onClick={() => handleMobileNavigate('schedule')}
                     />
 
                     <div className="pt-6 pb-2">
@@ -68,7 +103,7 @@ export const WorldCupLayout = ({ children, activeTab, onNavigate, language = 'en
                         icon={Settings}
                         label={t.settings}
                         active={false}
-                        onClick={() => onNavigate('settings')}
+                        onClick={() => handleMobileNavigate('settings')}
                     />
                 </nav>
 
@@ -87,7 +122,7 @@ export const WorldCupLayout = ({ children, activeTab, onNavigate, language = 'en
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col overflow-hidden relative">
+            <div className="flex-1 flex flex-col overflow-hidden relative pt-16 md:pt-0">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-5 pointer-events-none"
                     style={{
@@ -97,7 +132,7 @@ export const WorldCupLayout = ({ children, activeTab, onNavigate, language = 'en
                 ></div>
 
                 {/* Top Bar (Mobile/Tablet only usually, but good for context) */}
-                <div className="h-16 border-b border-slate-700/50 flex items-center justify-between px-8 bg-[#1e293b]/80 backdrop-blur-md z-10">
+                <div className="h-16 border-b border-slate-700/50 flex items-center justify-between px-8 bg-[#1e293b]/80 backdrop-blur-md z-10 hidden md:flex">
                     <h1 className="text-lg font-medium tracking-wide text-slate-200">
                         {activeTab === 'dashboard' && 'Tournament Overview'}
                         {activeTab === 'bracket' && 'Knockout Stage'}

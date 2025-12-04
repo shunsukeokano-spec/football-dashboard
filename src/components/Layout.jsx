@@ -1,5 +1,5 @@
-import React from 'react';
-import { LayoutDashboard, Trophy, Calendar, Settings, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { LayoutDashboard, Trophy, Calendar, Settings, User, Menu, X } from 'lucide-react';
 import { translations } from '../utils/translations';
 
 const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
@@ -13,31 +13,66 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
 );
 
 export const Layout = ({ children, activeTab, onNavigate, language = 'en' }) => {
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const t = translations[language] || translations['en'];
+
+    const handleMobileNavigate = (view, id) => {
+        onNavigate(view, id);
+        setIsMobileMenuOpen(false);
+    };
 
     return (
         <div className="flex h-screen w-full overflow-hidden">
-            {/* Sidebar */}
-            <div className="w-64 bg-card border-r border-border flex flex-col hidden md:flex">
-                <div className="p-6 flex items-center space-x-3">
+            {/* Mobile Header */}
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-40 flex items-center justify-between px-4">
+                <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <Trophy className="text-primary-foreground" size={20} />
+                    </div>
+                    <span className="font-bold text-xl tracking-tight">FootyDash</span>
+                </div>
+                <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2">
+                    {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+            </div>
+
+            {/* Mobile Sidebar Overlay */}
+            {isMobileMenuOpen && (
+                <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setIsMobileMenuOpen(false)} />
+            )}
+
+            {/* Sidebar (Desktop & Mobile) */}
+            <div className={`
+                fixed md:static inset-y-0 left-0 z-40 w-64 bg-card border-r border-border flex flex-col transition-transform duration-300 ease-in-out
+                ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+            `}>
+                <div className="p-6 flex items-center space-x-3 hidden md:flex">
                     <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                         <Trophy className="text-primary-foreground" size={20} />
                     </div>
                     <span className="font-bold text-xl tracking-tight">FootyDash</span>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-2 py-4">
+                {/* Mobile Menu Header */}
+                <div className="md:hidden p-6 flex items-center justify-between border-b border-border">
+                    <span className="font-bold text-xl">Menu</span>
+                    <button onClick={() => setIsMobileMenuOpen(false)}>
+                        <X size={20} />
+                    </button>
+                </div>
+
+                <nav className="flex-1 px-4 space-y-2 py-4 overflow-y-auto">
                     <SidebarItem
                         icon={LayoutDashboard}
                         label="Matches"
                         active={activeTab === 'dashboard'}
-                        onClick={() => onNavigate('dashboard')}
+                        onClick={() => handleMobileNavigate('dashboard')}
                     />
                     <SidebarItem
                         icon={Calendar}
                         label={t.schedule}
                         active={activeTab === 'schedule'}
-                        onClick={() => onNavigate('schedule')}
+                        onClick={() => handleMobileNavigate('schedule')}
                     />
 
                     {/* Leagues Section */}
@@ -49,43 +84,43 @@ export const Layout = ({ children, activeTab, onNavigate, language = 'en' }) => 
                             icon={Trophy}
                             label="Premier League"
                             active={false}
-                            onClick={() => onNavigate('league', 39)}
+                            onClick={() => handleMobileNavigate('league', 39)}
                         />
                         <SidebarItem
                             icon={Trophy}
                             label="La Liga"
                             active={false}
-                            onClick={() => onNavigate('league', 140)}
+                            onClick={() => handleMobileNavigate('league', 140)}
                         />
                         <SidebarItem
                             icon={Trophy}
                             label="Bundesliga"
                             active={false}
-                            onClick={() => onNavigate('league', 78)}
+                            onClick={() => handleMobileNavigate('league', 78)}
                         />
                         <SidebarItem
                             icon={Trophy}
                             label="Serie A"
                             active={false}
-                            onClick={() => onNavigate('league', 135)}
+                            onClick={() => handleMobileNavigate('league', 135)}
                         />
                         <SidebarItem
                             icon={Trophy}
                             label="Ligue 1"
                             active={false}
-                            onClick={() => onNavigate('league', 61)}
+                            onClick={() => handleMobileNavigate('league', 61)}
                         />
                         <SidebarItem
                             icon={Trophy}
                             label="Eredivisie"
                             active={false}
-                            onClick={() => onNavigate('league', 88)}
+                            onClick={() => handleMobileNavigate('league', 88)}
                         />
                         <SidebarItem
                             icon={Trophy}
                             label="J League"
                             active={false}
-                            onClick={() => onNavigate('league', 98)}
+                            onClick={() => handleMobileNavigate('league', 98)}
                         />
                     </div>
 
@@ -93,7 +128,7 @@ export const Layout = ({ children, activeTab, onNavigate, language = 'en' }) => 
                         icon={Settings}
                         label={t.settings}
                         active={false}
-                        onClick={() => onNavigate('settings')}
+                        onClick={() => handleMobileNavigate('settings')}
                     />
                 </nav>
 
@@ -111,7 +146,7 @@ export const Layout = ({ children, activeTab, onNavigate, language = 'en' }) => 
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-hidden pt-16 md:pt-0">
                 {children}
             </div>
         </div>
