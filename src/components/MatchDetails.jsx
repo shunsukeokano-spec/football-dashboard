@@ -26,8 +26,14 @@ export const MatchDetails = ({ matchId, onClose, onTeamClick, language = 'en' })
     if (!matchId) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-card w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-border">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+            onClick={onClose}
+        >
+            <div
+                className="bg-card w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-border"
+                onClick={(e) => e.stopPropagation()}
+            >
                 {/* Header */}
                 <div className="relative bg-muted/30 p-6 border-b border-border">
                     <button
@@ -64,8 +70,12 @@ export const MatchDetails = ({ matchId, onClose, onTeamClick, language = 'en' })
                                     className="flex flex-col items-center flex-1 cursor-pointer hover:opacity-80 transition-opacity"
                                     onClick={() => onTeamClick && onTeamClick(details.homeTeam.id)}
                                 >
-                                    <div className={`w-20 h-20 rounded-full mb-3 flex items-center justify-center text-white font-bold text-2xl shadow-lg ${details.homeTeam.color}`}>
-                                        {details.homeTeam.short}
+                                    <div className="w-20 h-20 rounded-full mb-3 bg-white p-3 shadow-lg flex items-center justify-center">
+                                        <img
+                                            src={details.homeTeam.logo}
+                                            alt={details.homeTeam.name}
+                                            className="w-full h-full object-contain"
+                                        />
                                     </div>
                                     <h2 className="text-xl font-bold text-center">{details.homeTeam.name}</h2>
                                 </div>
@@ -85,8 +95,12 @@ export const MatchDetails = ({ matchId, onClose, onTeamClick, language = 'en' })
                                     className="flex flex-col items-center flex-1 cursor-pointer hover:opacity-80 transition-opacity"
                                     onClick={() => onTeamClick && onTeamClick(details.awayTeam.id)}
                                 >
-                                    <div className={`w-20 h-20 rounded-full mb-3 flex items-center justify-center text-white font-bold text-2xl shadow-lg ${details.awayTeam.color}`}>
-                                        {details.awayTeam.short}
+                                    <div className="w-20 h-20 rounded-full mb-3 bg-white p-3 shadow-lg flex items-center justify-center">
+                                        <img
+                                            src={details.awayTeam.logo}
+                                            alt={details.awayTeam.name}
+                                            className="w-full h-full object-contain"
+                                        />
                                     </div>
                                     <h2 className="text-xl font-bold text-center">{details.awayTeam.name}</h2>
                                 </div>
@@ -304,6 +318,32 @@ export const MatchDetails = ({ matchId, onClose, onTeamClick, language = 'en' })
                                         homeTeam={details.homeTeam}
                                         awayTeam={details.awayTeam}
                                         matchDate={details.date}
+                                        players={(() => {
+                                            // 1. Goal Scorers & Red Cards from events
+                                            const eventPlayers = details.events
+                                                .filter(e => e.type === 'Goal' || (e.type === 'Card' && e.detail === 'Red Card'))
+                                                .map(e => e.player.name);
+
+                                            // 2. Active Shooters from stats
+                                            const shooters = [];
+                                            if (details.players) {
+                                                details.players.forEach(team => {
+                                                    team.players.forEach(p => {
+                                                        const shots = p.statistics[0]?.shots?.total || 0;
+                                                        if (shots > 0) {
+                                                            shooters.push({ name: p.player.name, shots });
+                                                        }
+                                                    });
+                                                });
+                                            }
+                                            // Sort by shots descending
+                                            shooters.sort((a, b) => b.shots - a.shots);
+                                            const shooterNames = shooters.map(s => s.name);
+
+                                            // 3. Combine & Deduplicate (Events > Shooters)
+                                            // Set preserves insertion order, so event players come first
+                                            return Array.from(new Set([...eventPlayers, ...shooterNames])).slice(0, 3);
+                                        })()}
                                     />
                                 </div>
                             )}

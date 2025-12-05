@@ -21,6 +21,32 @@ const LEAGUE_NAMES = Object.fromEntries(
     Object.entries(LEAGUE_IDS).map(([name, id]) => [id, name])
 );
 
+// Helper to get current season year
+// Football seasons run from August to July of the following year
+// The season is named by the year it starts (e.g., 2024-2025 season = 2024)
+// Examples:
+// - December 2024: 2024-2025 season → return 2024
+// - January 2025: 2024-2025 season → return 2024
+// - August 2025: 2025-2026 season → return 2025
+const getCurrentSeason = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-11 (0=Jan, 11=Dec)
+
+    // Season starts in August (month 7)
+    // If we're in Jan-Jul (months 0-6), we're in the second half of the season
+    // which started last year
+    // If we're in Aug-Dec (months 7-11), we're in the first half of the season
+    // which started this year
+    if (month >= 7) {
+        // Aug-Dec: season started this year
+        return year;
+    } else {
+        // Jan-Jul: season started last year
+        return year - 1;
+    }
+};
+
 // Cache utilities
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 
@@ -55,22 +81,23 @@ let matches = [];
 let listeners = [];
 let currentLanguage = 'en';
 
-export const fetchFixtures = async (lang = 'en', date = null) => {
-    // If no date provided, use today
-    const targetDate = date || new Date().toISOString().split('T')[0];
-    const cacheKey = `fixtures_${targetDate}_${lang}`;
+export const fetchFixtures = async (lang = 'en', from = null, to = null) => {
+    // If no dates provided, use today
+    const fromDate = from || new Date().toISOString().split('T')[0];
+    const toDate = to || fromDate;
+    const cacheKey = `fixtures_${fromDate}_${toDate}_${lang}`;
 
     // Check cache first
     const cached = cacheUtils.get(cacheKey);
     if (cached) {
-        console.log(`Using cached fixtures data for ${targetDate}`);
+        console.log(`Using cached fixtures data for ${fromDate} to ${toDate}`);
         return cached;
     }
 
     try {
-        console.log(`Fetching matches for ${targetDate}...`);
+        console.log(`Fetching matches from ${fromDate} to ${toDate}...`);
         const response = await fetch(
-            `${API_BASE_URL}/fixtures?date=${targetDate}&timezone=Asia/Tokyo`,
+            `${API_BASE_URL}/fixtures?from=${fromDate}&to=${toDate}&timezone=Asia/Tokyo`,
             {
                 method: 'GET',
                 headers: {
@@ -163,12 +190,14 @@ const transformFixture = (fixture, lang) => {
             name: homeName,
             short: fixture.teams.home.name.substring(0, 3).toUpperCase(),
             color: 'bg-blue-600',
+            logo: fixture.teams.home.logo,
         },
         awayTeam: {
             id: fixture.teams.away.id,
             name: awayName,
             short: fixture.teams.away.name.substring(0, 3).toUpperCase(),
             color: 'bg-red-600',
+            logo: fixture.teams.away.logo,
         },
         homeScore: fixture.goals.home || 0,
         awayScore: fixture.goals.away || 0,
@@ -181,37 +210,32 @@ const transformFixture = (fixture, lang) => {
 
 const loadMatches = async () => {
     console.log(`Fetching matches from API-Football (${currentLanguage})...`);
-    const transformed = await fetchFixtures(currentLanguage);
+
+    // Fetch a 7-day window: 3 days before, today, 3 days after
+    const today = new Date();
+    const fromDate = new Date(today);
+    fromDate.setDate(today.getDate() - 3);
+    const toDate = new Date(today);
+    toDate.setDate(today.getDate() + 3);
+
+    const fromStr = fromDate.toISOString().split('T')[0];
+    const toStr = toDate.toISOString().split('T')[0];
+
+    const transformed = await fetchFixtures(currentLanguage, fromStr, toStr);
 
     if (transformed.length > 0) {
         matches = transformed;
-        console.log(`Loaded ${matches.length} matches`);
+        console.log(`Loaded ${matches.length} matches from ${fromStr} to ${toStr}`);
         notifyListeners();
     } else {
-        // Fallback: fetch recent completed matches (yesterday and day before)
-        console.log('No matches today, fetching recent matches...');
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-        const dayBefore = new Date();
-        dayBefore.setDate(dayBefore.getDate() - 2);
-        const dayBeforeStr = dayBefore.toISOString().split('T')[0];
-
-        const [recentMatches1, recentMatches2] = await Promise.all([
-            fetchFixtures(currentLanguage, yesterdayStr),
-            fetchFixtures(currentLanguage, dayBeforeStr)
-        ]);
-
-        const allRecent = [...recentMatches1, ...recentMatches2];
-
-        if (allRecent.length > 0) {
-            matches = allRecent;
-            console.log(`Loaded ${matches.length} recent matches as fallback`);
-            notifyListeners();
+        // Don't clear existing matches if API call fails
+        if (matches.length === 0) {
+            console.warn('No matches available in the 7-day window');
         } else {
-            console.warn('No matches available (today or recent)');
+            console.warn('API call failed or returned no data, keeping existing matches');
         }
+        // Still notify listeners to update UI (in case language changed)
+        notifyListeners();
     }
 };
 
@@ -369,6 +393,34 @@ export const fetchTeamDetails = async (teamId, lang = 'en') => {
         const squadList = squadData.response?.[0]?.players || [];
         const coachInfo = coachData.response?.[0]; // Get the first (current) coach
 
+        // Fetch league standings to get team's position
+        let standing = null;
+        let leagueId = null;
+
+        // Try to find the team's league from our supported leagues
+        // Check if team plays in any of our tracked leagues
+        const currentSeason = getCurrentSeason();
+        for (const [leagueName, id] of Object.entries(LEAGUE_IDS)) {
+            const standings = await fetchLeagueStandings(id, currentSeason);
+            if (standings) {
+                const teamStanding = standings.find(s => s.teamId === teamId);
+                if (teamStanding) {
+                    leagueId = id;
+                    standing = {
+                        position: teamStanding.position,
+                        leagueName: leagueName,
+                        played: teamStanding.played,
+                        won: teamStanding.won,
+                        drawn: teamStanding.drawn,
+                        lost: teamStanding.lost,
+                        points: teamStanding.points,
+                        form: teamStanding.form
+                    };
+                    break; // Found the team's league
+                }
+            }
+        }
+
         const details = {
             id: teamInfo.team.id,
             name: teamInfo.team.name,
@@ -391,7 +443,9 @@ export const fetchTeamDetails = async (teamId, lang = 'en') => {
                 position: p.position,
                 photo: p.photo,
                 age: p.age
-            }))
+            })),
+            standing,
+            leagueId
         };
 
         // Cache for 1 hour
@@ -407,7 +461,7 @@ export const fetchTeamDetails = async (teamId, lang = 'en') => {
 };
 
 // Fetch league standings
-export const fetchLeagueStandings = async (leagueId, season = 2024) => {
+export const fetchLeagueStandings = async (leagueId, season = getCurrentSeason()) => {
     const cacheKey = `standings_${leagueId}_${season}`;
 
     // Check cache first (6 hour cache for standings)
@@ -463,7 +517,7 @@ export const fetchLeagueStandings = async (leagueId, season = 2024) => {
 };
 
 // Fetch top scorers
-export const fetchTopScorers = async (leagueId, season = 2024, limit = 10) => {
+export const fetchTopScorers = async (leagueId, season = getCurrentSeason(), limit = 10) => {
     const cacheKey = `topscorers_${leagueId}_${season}`;
 
     // Check cache first (6 hour cache for top scorers)
@@ -515,7 +569,7 @@ export const fetchTopScorers = async (leagueId, season = 2024, limit = 10) => {
 };
 
 // Fetch player statistics
-export const fetchPlayerStats = async (playerId, season = 2024) => {
+export const fetchPlayerStats = async (playerId, season = getCurrentSeason()) => {
     const cacheKey = `player_${playerId}_${season}`;
 
     // Check cache first (24 hour cache for player stats)

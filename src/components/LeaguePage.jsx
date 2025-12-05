@@ -6,7 +6,7 @@ import { TopScorers } from './TopScorers';
 import { MatchCard } from './MatchCard';
 
 export const LeaguePage = ({ leagueId, onClose, onTeamClick, onMatchClick, matches, language = 'en' }) => {
-    const [activeTab, setActiveTab] = useState('standings');
+    const [activeTab, setActiveTab] = useState('matches');
     const [standings, setStandings] = useState(null);
     const [topScorers, setTopScorers] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -39,14 +39,20 @@ export const LeaguePage = ({ leagueId, onClose, onTeamClick, onMatchClick, match
         .slice(0, 10);
 
     const tabs = [
+        { id: 'matches', label: 'Recent Matches', icon: Calendar },
         { id: 'standings', label: 'Standings', icon: Trophy },
-        { id: 'scorers', label: 'Top Scorers', icon: Target },
-        { id: 'matches', label: 'Recent Matches', icon: Calendar }
+        { id: 'scorers', label: 'Top Scorers', icon: Target }
     ];
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-card w-full max-w-6xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-border">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+            onClick={onClose}
+        >
+            <div
+                className="bg-card w-full max-w-6xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-border"
+                onClick={(e) => e.stopPropagation()}
+            >
                 {/* Header */}
                 <div className="relative bg-gradient-to-r from-primary/20 to-primary/10 p-6 border-b border-border">
                     <button
@@ -69,8 +75,8 @@ export const LeaguePage = ({ leagueId, onClose, onTeamClick, onMatchClick, match
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 font-medium transition-colors ${activeTab === tab.id
-                                        ? 'text-primary border-b-2 border-primary bg-background'
-                                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                    ? 'text-primary border-b-2 border-primary bg-background'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                     }`}
                             >
                                 <Icon size={18} />

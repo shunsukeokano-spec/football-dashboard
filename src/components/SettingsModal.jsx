@@ -6,8 +6,14 @@ export const SettingsModal = ({ onClose, language, setLanguage, theme, setTheme,
     const t = translations[language] || translations['en'];
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-card w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-border">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+            onClick={onClose}
+        >
+            <div
+                className="bg-card w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-border"
+                onClick={(e) => e.stopPropagation()}
+            >
                 {/* Header */}
                 <div className="relative bg-muted/30 p-6 border-b border-border flex justify-between items-center">
                     <h2 className="text-xl font-bold">{t.settings}</h2>

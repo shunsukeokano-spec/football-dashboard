@@ -282,7 +282,10 @@ function App() {
           leagueId={selectedLeagueId}
           onClose={() => setSelectedLeagueId(null)}
           onTeamClick={handleTeamClick}
-          onMatchClick={setSelectedMatchId}
+          onMatchClick={(matchId) => {
+            setSelectedMatchId(matchId);
+            setSelectedLeagueId(null);
+          }}
           matches={matches}
           language={language}
         />

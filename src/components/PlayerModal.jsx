@@ -30,8 +30,14 @@ export const PlayerModal = ({ player, teamName, onClose }) => {
     const transfermarktSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(`${player.name} ${teamName} transfermarkt`)}`;
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-card w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-border relative">
+        <div
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+            onClick={onClose}
+        >
+            <div
+                className="bg-card w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-border relative"
+                onClick={(e) => e.stopPropagation()}
+            >
 
                 <button
                     onClick={onClose}

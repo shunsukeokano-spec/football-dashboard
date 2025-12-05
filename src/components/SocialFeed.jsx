@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Youtube, MessageCircle, Twitter } from 'lucide-react';
 
-export const SocialFeed = ({ homeTeam, awayTeam, matchDate }) => {
+export const SocialFeed = ({ homeTeam, awayTeam, matchDate, players = [] }) => {
     // Generate hashtag for Twitter (e.g., "ARSCHE" for Arsenal vs Chelsea)
     const generateHashtag = () => {
         const home = homeTeam.name.replace(/\s+/g, '').substring(0, 3).toUpperCase();
@@ -24,21 +24,7 @@ export const SocialFeed = ({ homeTeam, awayTeam, matchDate }) => {
     const youtubeQuery = generateYouTubeQuery();
     const redditQuery = generateRedditQuery();
 
-    // Load Twitter widget script
-    useEffect(() => {
-        const script = document.createElement('script');
-        script.src = 'https://platform.twitter.com/widgets.js';
-        script.async = true;
-        document.body.appendChild(script);
 
-        return () => {
-            // Cleanup
-            const existingScript = document.querySelector('script[src="https://platform.twitter.com/widgets.js"]');
-            if (existingScript) {
-                document.body.removeChild(existingScript);
-            }
-        };
-    }, []);
 
     return (
         <div className="space-y-6">
@@ -86,31 +72,43 @@ export const SocialFeed = ({ homeTeam, awayTeam, matchDate }) => {
                 </a>
             </div>
 
-            {/* Twitter Feed */}
+            {/* X (Twitter) Search Link */}
             <div className="border border-border rounded-xl overflow-hidden bg-card">
                 <div className="p-4 border-b border-border bg-muted/30">
                     <div className="flex items-center space-x-2">
                         <Twitter size={18} className="text-primary" />
-                        <span className="font-medium text-sm">Live Tweets</span>
+                        <span className="font-medium text-sm">Live Discussion on X</span>
                     </div>
                 </div>
-                <div className="p-4 bg-background">
+                <div className="p-6 bg-background text-center">
+                    <div className="mb-4">
+                        <p className="text-sm text-muted-foreground mb-2">
+                            Join the conversation about this match on X (formerly Twitter)
+                        </p>
+                        <div className="flex flex-wrap justify-center gap-2 text-xs text-muted-foreground">
+                            <span className="px-2 py-1 bg-muted rounded-full">#{hashtag}</span>
+                            {players.slice(0, 3).map((player, idx) => (
+                                <span key={idx} className="px-2 py-1 bg-muted rounded-full">{player}</span>
+                            ))}
+                        </div>
+                    </div>
                     <a
-                        className="twitter-timeline"
-                        data-height="500"
-                        data-theme="dark"
-                        data-chrome="noheader nofooter noborders"
-                        href={`https://twitter.com/search?q=%23${hashtag}%20OR%20${encodeURIComponent(homeTeam.name + ' ' + awayTeam.name)}&src=typed_query&f=live`}
+                        href={`https://twitter.com/search?q=%23${hashtag}%20OR%20${encodeURIComponent(homeTeam.name + ' ' + awayTeam.name)}${players.length > 0 ? '%20OR%20' + encodeURIComponent(players.map(p => `"${p}"`).join(' OR ')) : ''}&src=typed_query&f=live`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center space-x-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
                     >
-                        Loading tweets about #{hashtag}...
+                        <Twitter size={20} />
+                        <span>View Live Posts on X</span>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
                     </a>
+                    <p className="text-xs text-muted-foreground mt-4">
+                        Opens in a new tab • No login required
+                    </p>
                 </div>
             </div>
-
-            {/* Fallback message */}
-            <p className="text-xs text-center text-muted-foreground">
-                Can't see tweets? Try searching <a href={`https://twitter.com/search?q=%23${hashtag}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">#{hashtag} on Twitter</a>
-            </p>
         </div>
     );
 };
