@@ -3,8 +3,15 @@ import { getTeamName, translations } from '../utils/translations';
 const API_KEY = import.meta.env.VITE_API_FOOTBALL_KEY;
 const API_BASE_URL = 'https://v3.football.api-sports.io';
 
-// League ID mapping for API-Football
-const LEAGUE_IDS = {
+// Active leagues (visible to users) - to reduce API usage
+const ACTIVE_LEAGUE_IDS = {
+    'Premier League': 39,
+    'La Liga': 140,
+    'J League': 98,
+};
+
+// All leagues (kept for future use)
+const ALL_LEAGUE_IDS = {
     'Premier League': 39,
     'La Liga': 140,
     'Bundesliga': 78,
@@ -14,8 +21,11 @@ const LEAGUE_IDS = {
     'J League': 98,
     'Champions League': 2,
     'Europa League': 3,
-    'World Cup Qualifiers': 960, // UEFA qualifiers
+    'World Cup Qualifiers': 960,
 };
+
+// Use active leagues by default
+const LEAGUE_IDS = ACTIVE_LEAGUE_IDS;
 
 const LEAGUE_NAMES = Object.fromEntries(
     Object.entries(LEAGUE_IDS).map(([name, id]) => [id, name])
@@ -47,16 +57,26 @@ const getCurrentSeason = () => {
     }
 };
 
-// Cache utilities
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+// Cache utilities with different durations for different data types
+const CACHE_DURATIONS = {
+    fixtures: 5 * 60 * 1000,        // 5 minutes (for live scores)
+    matchDetails: 10 * 60 * 1000,   // 10 minutes
+    standings: 6 * 60 * 60 * 1000,  // 6 hours (changes once per matchday)
+    topScorers: 6 * 60 * 60 * 1000, // 6 hours
+    teamInfo: 24 * 60 * 60 * 1000,  // 24 hours (rarely changes)
+    playerStats: 24 * 60 * 60 * 1000, // 24 hours
+};
+
+// Default cache duration
+const CACHE_DURATION = CACHE_DURATIONS.fixtures;
 
 const cacheUtils = {
-    get: (key) => {
+    get: (key, duration = CACHE_DURATION) => {
         try {
             const cached = localStorage.getItem(`football_cache_${key}`);
             if (!cached) return null;
             const { data, timestamp } = JSON.parse(cached);
-            if (Date.now() - timestamp > CACHE_DURATION) {
+            if (Date.now() - timestamp > duration) {
                 localStorage.removeItem(`football_cache_${key}`);
                 return null;
             }
@@ -87,8 +107,8 @@ export const fetchFixtures = async (lang = 'en', from = null, to = null) => {
     const toDate = to || fromDate;
     const cacheKey = `fixtures_${fromDate}_${toDate}_${lang}`;
 
-    // Check cache first
-    const cached = cacheUtils.get(cacheKey);
+    // Check cache first (5 minutes for live scores)
+    const cached = cacheUtils.get(cacheKey, CACHE_DURATIONS.fixtures);
     if (cached) {
         console.log(`Using cached fixtures data for ${fromDate} to ${toDate}`);
         return cached;
@@ -185,6 +205,7 @@ const transformFixture = (fixture, lang) => {
         id: fixture.fixture.id,
         type,
         league: leagueName,
+        leagueId, // Store league ID for later use
         homeTeam: {
             id: fixture.teams.home.id,
             name: homeName,
@@ -257,8 +278,8 @@ export const subscribeToUpdates = (callback, lang = 'en') => {
         callback([...matches]);
     }
 
-    // Poll every 60 seconds for updates (reduced from 30s to save API calls)
-    const intervalId = setInterval(loadMatches, 60000);
+    // Poll every 5 minutes for updates (reduced from 60s to save API calls)
+    const intervalId = setInterval(loadMatches, 300000);
 
     return () => {
         console.log('Unsubscribing from updates...');
@@ -270,8 +291,8 @@ export const subscribeToUpdates = (callback, lang = 'en') => {
 export const fetchMatchDetails = async (fixtureId, lang = 'en') => {
     const cacheKey = `match_${fixtureId}_${lang}`;
 
-    // Check cache first
-    const cached = cacheUtils.get(cacheKey);
+    // Check cache first (10 minutes for match details)
+    const cached = cacheUtils.get(cacheKey, CACHE_DURATIONS.matchDetails);
     if (cached) {
         console.log(`Using cached details for match ${fixtureId}`);
         return cached;
@@ -335,8 +356,8 @@ export const fetchMatchDetails = async (fixtureId, lang = 'en') => {
 export const fetchTeamDetails = async (teamId, lang = 'en') => {
     const cacheKey = `team_${teamId}_${lang}`;
 
-    // Check cache first (Longer duration for teams: 1 hour)
-    const cached = cacheUtils.get(cacheKey);
+    // Check cache first (24 hours for team info)
+    const cached = cacheUtils.get(cacheKey, CACHE_DURATIONS.teamInfo);
     if (cached) {
         console.log(`Using cached details for team ${teamId}`);
         return cached;
@@ -394,29 +415,71 @@ export const fetchTeamDetails = async (teamId, lang = 'en') => {
         const coachInfo = coachData.response?.[0]; // Get the first (current) coach
 
         // Fetch league standings to get team's position
+        // First, try to get cached league info from previous match views
         let standing = null;
         let leagueId = null;
 
-        // Try to find the team's league from our supported leagues
-        // Check if team plays in any of our tracked leagues
-        const currentSeason = getCurrentSeason();
-        for (const [leagueName, id] of Object.entries(LEAGUE_IDS)) {
-            const standings = await fetchLeagueStandings(id, currentSeason);
-            if (standings) {
-                const teamStanding = standings.find(s => s.teamId === teamId);
-                if (teamStanding) {
-                    leagueId = id;
-                    standing = {
-                        position: teamStanding.position,
-                        leagueName: leagueName,
-                        played: teamStanding.played,
-                        won: teamStanding.won,
-                        drawn: teamStanding.drawn,
-                        lost: teamStanding.lost,
-                        points: teamStanding.points,
-                        form: teamStanding.form
-                    };
-                    break; // Found the team's league
+        try {
+            const teamLeagueCache = JSON.parse(localStorage.getItem('teamLeagueCache') || '{}');
+            const cachedLeagueId = teamLeagueCache[teamId];
+
+            if (cachedLeagueId && LEAGUE_IDS[Object.keys(LEAGUE_IDS).find(k => LEAGUE_IDS[k] === cachedLeagueId)]) {
+                // Use cached league ID
+                leagueId = cachedLeagueId;
+                const currentSeason = getCurrentSeason();
+                const standings = await fetchLeagueStandings(leagueId, currentSeason);
+                if (standings) {
+                    const teamStanding = standings.find(s => s.teamId === teamId);
+                    if (teamStanding) {
+                        const leagueName = Object.keys(LEAGUE_IDS).find(k => LEAGUE_IDS[k] === leagueId);
+                        standing = {
+                            position: teamStanding.position,
+                            leagueName: leagueName,
+                            played: teamStanding.played,
+                            won: teamStanding.won,
+                            drawn: teamStanding.drawn,
+                            lost: teamStanding.lost,
+                            points: teamStanding.points,
+                            form: teamStanding.form
+                        };
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Failed to use cached league info:', e);
+        }
+
+        // If no cached league or standing not found, search through active leagues
+        if (!standing) {
+            const currentSeason = getCurrentSeason();
+            for (const [leagueName, id] of Object.entries(LEAGUE_IDS)) {
+                const standings = await fetchLeagueStandings(id, currentSeason);
+                if (standings) {
+                    const teamStanding = standings.find(s => s.teamId === teamId);
+                    if (teamStanding) {
+                        leagueId = id;
+                        standing = {
+                            position: teamStanding.position,
+                            leagueName: leagueName,
+                            played: teamStanding.played,
+                            won: teamStanding.won,
+                            drawn: teamStanding.drawn,
+                            lost: teamStanding.lost,
+                            points: teamStanding.points,
+                            form: teamStanding.form
+                        };
+
+                        // Cache the league ID for this team
+                        try {
+                            const teamLeagueCache = JSON.parse(localStorage.getItem('teamLeagueCache') || '{}');
+                            teamLeagueCache[teamId] = leagueId;
+                            localStorage.setItem('teamLeagueCache', JSON.stringify(teamLeagueCache));
+                        } catch (e) {
+                            console.warn('Failed to cache team league:', e);
+                        }
+
+                        break; // Found the team's league
+                    }
                 }
             }
         }
@@ -464,8 +527,8 @@ export const fetchTeamDetails = async (teamId, lang = 'en') => {
 export const fetchLeagueStandings = async (leagueId, season = getCurrentSeason()) => {
     const cacheKey = `standings_${leagueId}_${season}`;
 
-    // Check cache first (6 hour cache for standings)
-    const cached = cacheUtils.get(cacheKey);
+    // Check cache first (6 hours for standings)
+    const cached = cacheUtils.get(cacheKey, CACHE_DURATIONS.standings);
     if (cached) {
         console.log(`Using cached standings for league ${leagueId}`);
         return cached;
@@ -520,8 +583,8 @@ export const fetchLeagueStandings = async (leagueId, season = getCurrentSeason()
 export const fetchTopScorers = async (leagueId, season = getCurrentSeason(), limit = 10) => {
     const cacheKey = `topscorers_${leagueId}_${season}`;
 
-    // Check cache first (6 hour cache for top scorers)
-    const cached = cacheUtils.get(cacheKey);
+    // Check cache first (6 hours for top scorers)
+    const cached = cacheUtils.get(cacheKey, CACHE_DURATIONS.topScorers);
     if (cached) {
         console.log(`Using cached top scorers for league ${leagueId}`);
         return cached;
@@ -572,8 +635,8 @@ export const fetchTopScorers = async (leagueId, season = getCurrentSeason(), lim
 export const fetchPlayerStats = async (playerId, season = getCurrentSeason()) => {
     const cacheKey = `player_${playerId}_${season}`;
 
-    // Check cache first (24 hour cache for player stats)
-    const cached = cacheUtils.get(cacheKey);
+    // Check cache first (24 hours for player stats)
+    const cached = cacheUtils.get(cacheKey, CACHE_DURATIONS.playerStats);
     if (cached) {
         console.log(`Using cached stats for player ${playerId}`);
         return cached;
