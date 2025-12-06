@@ -1,7 +1,11 @@
 import { getTeamName, translations } from '../utils/translations';
+import { mockMatches } from '../data/mockData';
 
 const API_KEY = import.meta.env.VITE_API_FOOTBALL_KEY;
 const API_BASE_URL = 'https://v3.football.api-sports.io';
+
+// Enable mock data mode when API free tier doesn't have current season data
+const USE_MOCK_DATA = true; // Set to false when using paid API plan
 
 // Active leagues (visible to users) - to reduce API usage
 const ACTIVE_LEAGUE_IDS = {
@@ -48,6 +52,12 @@ const getCurrentSeason = () => {
     // which started last year
     // If we're in Aug-Dec (months 7-11), we're in the first half of the season
     // which started this year
+
+    // IMPORTANT: For year 2025 before August, we're still in 2024-2025 season
+    if (year === 2025 && month < 7) {
+        return 2024; // Jan-Jul 2025 = 2024-2025 season
+    }
+
     if (month >= 7) {
         // Aug-Dec: season started this year
         return year;
@@ -232,6 +242,14 @@ const transformFixture = (fixture, lang) => {
 const loadMatches = async () => {
     console.log(`Fetching matches from API-Football (${currentLanguage})...`);
 
+    // If using mock data and no matches yet, set mock data immediately
+    if (USE_MOCK_DATA && matches.length === 0) {
+        console.warn('Using mock data for demo (API free tier limitation).');
+        matches = mockMatches;
+        notifyListeners();
+        return; // Don't make API call
+    }
+
     // Fetch a 7-day window: 3 days before, today, 3 days after
     const today = new Date();
     const fromDate = new Date(today);
@@ -247,17 +265,14 @@ const loadMatches = async () => {
     if (transformed.length > 0) {
         matches = transformed;
         console.log(`Loaded ${matches.length} matches from ${fromStr} to ${toStr}`);
-        notifyListeners();
+    } else if (matches.length === 0) {
+        console.warn('No matches available in the 7-day window');
     } else {
-        // Don't clear existing matches if API call fails
-        if (matches.length === 0) {
-            console.warn('No matches available in the 7-day window');
-        } else {
-            console.warn('API call failed or returned no data, keeping existing matches');
-        }
-        // Still notify listeners to update UI (in case language changed)
-        notifyListeners();
+        console.warn('API call failed or returned no data, keeping existing matches');
     }
+
+    // Notify listeners after updating matches
+    notifyListeners();
 };
 
 const notifyListeners = () => {
@@ -269,9 +284,13 @@ export const subscribeToUpdates = (callback, lang = 'en') => {
     listeners.push(callback);
 
     // Update current language
-    if (currentLanguage !== lang) {
+    const languageChanged = currentLanguage !== lang;
+    if (languageChanged) {
         currentLanguage = lang;
-        // Reload matches with new language immediately
+    }
+
+    // Load matches if language changed OR if we have no matches yet
+    if (languageChanged || matches.length === 0) {
         loadMatches();
     } else {
         // Just return current matches

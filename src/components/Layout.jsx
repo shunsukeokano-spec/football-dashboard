@@ -1,20 +1,30 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Trophy, Calendar, Settings, User, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Trophy, Calendar, Settings, User, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { translations } from '../utils/translations';
 
 const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
     <div
         onClick={onClick}
         className={`flex items-center space-x-3 px-4 py-3 rounded-lg cursor-pointer transition-colors ${active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
+        title={label}
     >
-        <Icon size={20} />
-        <span className="font-medium">{label}</span>
+        <Icon size={20} className="flex-shrink-0" />
+        <span className="font-medium truncate">{label}</span>
     </div>
 );
 
 export const Layout = ({ children, activeTab, onNavigate, language = 'en' }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+        return localStorage.getItem('sidebar_collapsed') === 'true';
+    });
     const t = translations[language] || translations['en'];
+
+    const toggleSidebar = () => {
+        const newState = !isSidebarCollapsed;
+        setIsSidebarCollapsed(newState);
+        localStorage.setItem('sidebar_collapsed', newState);
+    };
 
     const handleMobileNavigate = (view, id) => {
         onNavigate(view, id);
@@ -43,14 +53,30 @@ export const Layout = ({ children, activeTab, onNavigate, language = 'en' }) => 
 
             {/* Sidebar (Desktop & Mobile) */}
             <div className={`
-                fixed md:static inset-y-0 left-0 z-40 w-64 bg-card border-r border-border flex flex-col transition-transform duration-300 ease-in-out
+                fixed md:static inset-y-0 left-0 z-40 bg-card border-r border-border flex flex-col transition-all duration-300 ease-in-out
                 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+                ${isSidebarCollapsed ? 'md:w-16' : 'md:w-64'}
+                w-64
             `}>
-                <div className="p-6 flex items-center space-x-3 hidden md:flex">
-                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                        <Trophy className="text-primary-foreground" size={20} />
+                <div className="p-6 flex items-center justify-between hidden md:flex">
+                    <div className={`flex items-center space-x-3 ${isSidebarCollapsed ? 'hidden' : ''}`}>
+                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                            <Trophy className="text-primary-foreground" size={20} />
+                        </div>
+                        <span className="font-bold text-xl tracking-tight">FootyDash</span>
                     </div>
-                    <span className="font-bold text-xl tracking-tight">FootyDash</span>
+                    {isSidebarCollapsed && (
+                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center mx-auto">
+                            <Trophy className="text-primary-foreground" size={20} />
+                        </div>
+                    )}
+                    <button
+                        onClick={toggleSidebar}
+                        className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                        title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    >
+                        {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+                    </button>
                 </div>
 
                 {/* Mobile Menu Header */}
@@ -77,48 +103,26 @@ export const Layout = ({ children, activeTab, onNavigate, language = 'en' }) => 
 
                     {/* Leagues Section */}
                     <div className="pt-4">
-                        <p className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                            Leagues
-                        </p>
+                        {!isSidebarCollapsed && (
+                            <p className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                                Leagues
+                            </p>
+                        )}
                         <SidebarItem
                             icon={Trophy}
-                            label="Premier League"
+                            label={isSidebarCollapsed ? "PL" : "Premier League"}
                             active={false}
                             onClick={() => handleMobileNavigate('league', 39)}
                         />
                         <SidebarItem
                             icon={Trophy}
-                            label="La Liga"
+                            label={isSidebarCollapsed ? "LL" : "La Liga"}
                             active={false}
                             onClick={() => handleMobileNavigate('league', 140)}
                         />
                         <SidebarItem
                             icon={Trophy}
-                            label="Bundesliga"
-                            active={false}
-                            onClick={() => handleMobileNavigate('league', 78)}
-                        />
-                        <SidebarItem
-                            icon={Trophy}
-                            label="Serie A"
-                            active={false}
-                            onClick={() => handleMobileNavigate('league', 135)}
-                        />
-                        <SidebarItem
-                            icon={Trophy}
-                            label="Ligue 1"
-                            active={false}
-                            onClick={() => handleMobileNavigate('league', 61)}
-                        />
-                        <SidebarItem
-                            icon={Trophy}
-                            label="Eredivisie"
-                            active={false}
-                            onClick={() => handleMobileNavigate('league', 88)}
-                        />
-                        <SidebarItem
-                            icon={Trophy}
-                            label="J League"
+                            label={isSidebarCollapsed ? "JL" : "J League"}
                             active={false}
                             onClick={() => handleMobileNavigate('league', 98)}
                         />
