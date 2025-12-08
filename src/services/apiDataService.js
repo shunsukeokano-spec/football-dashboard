@@ -5,7 +5,7 @@ const API_KEY = import.meta.env.VITE_API_FOOTBALL_KEY;
 const API_BASE_URL = 'https://v3.football.api-sports.io';
 
 // Enable mock data mode when API free tier doesn't have current season data
-const USE_MOCK_DATA = true; // Set to false when using paid API plan
+const USE_MOCK_DATA = false; // Set to false when using paid API plan
 
 // Active leagues (visible to users) - to reduce API usage
 const ACTIVE_LEAGUE_IDS = {
@@ -250,12 +250,13 @@ const loadMatches = async () => {
         return; // Don't make API call
     }
 
-    // Fetch a 7-day window: 3 days before, today, 3 days after
+    // Fetch a 3-day window: Yesterday, Today, Tomorrow
+    // This uses 3 API requests per refresh
     const today = new Date();
     const fromDate = new Date(today);
-    fromDate.setDate(today.getDate() - 3);
+    fromDate.setDate(today.getDate() - 1); // Yesterday
     const toDate = new Date(today);
-    toDate.setDate(today.getDate() + 3);
+    toDate.setDate(today.getDate() + 1); // Tomorrow
 
     const fromStr = fromDate.toISOString().split('T')[0];
     const toStr = toDate.toISOString().split('T')[0];
