@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Filter } from 'lucide-react';
-import { fetchFixtures } from '../services/apiDataService';
+import { fetchByDate } from '../services/apiDataService';
 import { translations } from '../utils/translations';
 
 export const Schedule = ({ language = 'en', onMatchClick }) => {
@@ -12,7 +12,8 @@ export const Schedule = ({ language = 'en', onMatchClick }) => {
     useEffect(() => {
         const loadMatches = async () => {
             setLoading(true);
-            const data = await fetchFixtures(language, date);
+            // Use fetchByDate because from/to range endpoints are unreliable on free tier
+            const data = await fetchByDate(date, language);
             setMatches(data);
             setLoading(false);
         };
@@ -41,42 +42,36 @@ export const Schedule = ({ language = 'en', onMatchClick }) => {
     return (
         <div className="flex-1 overflow-y-auto bg-background p-4 md:p-8 custom-scrollbar">
             {/* Header / Controls */}
-            <div className="flex flex-col md:flex-row justify-between items-center mb-8 space-y-4 md:space-y-0">
+            <div className="flex flex-col space-y-4 mb-8">
                 <h1 className="text-2xl font-bold">{t.schedule}</h1>
 
-                <div className="flex items-center space-x-4 bg-card p-2 rounded-xl shadow-sm border border-border">
-                    <button
-                        onClick={() => handleDateChange(-1)}
-                        className="p-2 hover:bg-muted rounded-lg transition-colors"
-                    >
-                        <ChevronLeft size={20} />
-                    </button>
+                {/* Coming 7 Days Selector */}
+                <div className="flex space-x-2 overflow-x-auto pb-2 custom-scrollbar">
+                    {[...Array(7)].map((_, i) => {
+                        const d = new Date();
+                        d.setDate(d.getDate() + i);
+                        const dayStr = d.toISOString().split('T')[0];
+                        const dayName = d.toLocaleDateString(language, { weekday: 'short' });
+                        const dayNum = d.getDate();
+                        const isSelected = date === dayStr;
+                        const isToday = i === 0;
 
-                    <div className="flex items-center space-x-2 relative">
-                        <CalendarIcon size={18} className="text-muted-foreground" />
-                        <input
-                            type="date"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                            className="bg-transparent border-none focus:ring-0 font-medium text-sm cursor-pointer"
-                        />
-                    </div>
-
-                    <button
-                        onClick={() => handleDateChange(1)}
-                        className="p-2 hover:bg-muted rounded-lg transition-colors"
-                    >
-                        <ChevronRight size={20} />
-                    </button>
-
-                    <div className="w-px h-6 bg-border mx-2"></div>
-
-                    <button
-                        onClick={handleToday}
-                        className="text-sm font-medium text-primary hover:underline px-2"
-                    >
-                        Today
-                    </button>
+                        return (
+                            <button
+                                key={i}
+                                onClick={() => setDate(dayStr)}
+                                className={`flex flex-col items-center min-w-[60px] p-2 rounded-xl transition-all ${isSelected
+                                    ? 'bg-primary text-primary-foreground shadow-md scale-105'
+                                    : 'bg-card border border-border text-muted-foreground hover:bg-muted'
+                                    }`}
+                            >
+                                <span className={`text-xs font-medium ${isSelected ? 'text-primary-foreground/80' : ''}`}>
+                                    {isToday ? 'Today' : dayName}
+                                </span>
+                                <span className="text-lg font-bold">{dayNum}</span>
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
@@ -92,6 +87,7 @@ export const Schedule = ({ language = 'en', onMatchClick }) => {
                     </div>
                     <p className="text-lg font-medium">No matches found for this date</p>
                     <p className="text-sm">Try selecting a different day</p>
+                    <p className="text-xs mt-2 text-red-400/50">Free Tier limits historical data access</p>
                 </div>
             ) : (
                 <div className="space-y-8">
@@ -118,8 +114,19 @@ export const Schedule = ({ language = 'en', onMatchClick }) => {
                                         <div className="space-y-3">
                                             <div className="flex justify-between items-center">
                                                 <div className="flex items-center space-x-3">
-                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${match.homeTeam.color}`}>
-                                                        {match.homeTeam.short}
+                                                    <div className={`w-8 h-8 flex items-center justify-center p-0.5 bg-white rounded-full shadow-sm`}>
+                                                        <img
+                                                            src={match.homeTeam.logo}
+                                                            alt={match.homeTeam.name}
+                                                            className="w-full h-full object-contain"
+                                                            onError={(e) => {
+                                                                e.target.style.display = 'none';
+                                                                e.target.parentNode.classList.add(match.homeTeam.color);
+                                                                e.target.parentNode.classList.remove('bg-white', 'p-0.5');
+                                                                e.target.parentNode.innerText = match.homeTeam.short;
+                                                                e.target.parentNode.classList.add('text-white', 'text-xs', 'font-bold');
+                                                            }}
+                                                        />
                                                     </div>
                                                     <span className="font-medium">{match.homeTeam.name}</span>
                                                 </div>
@@ -128,8 +135,19 @@ export const Schedule = ({ language = 'en', onMatchClick }) => {
 
                                             <div className="flex justify-between items-center">
                                                 <div className="flex items-center space-x-3">
-                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${match.awayTeam.color}`}>
-                                                        {match.awayTeam.short}
+                                                    <div className={`w-8 h-8 flex items-center justify-center p-0.5 bg-white rounded-full shadow-sm`}>
+                                                        <img
+                                                            src={match.awayTeam.logo}
+                                                            alt={match.awayTeam.name}
+                                                            className="w-full h-full object-contain"
+                                                            onError={(e) => {
+                                                                e.target.style.display = 'none';
+                                                                e.target.parentNode.classList.add(match.awayTeam.color);
+                                                                e.target.parentNode.classList.remove('bg-white', 'p-0.5');
+                                                                e.target.parentNode.innerText = match.awayTeam.short;
+                                                                e.target.parentNode.classList.add('text-white', 'text-xs', 'font-bold');
+                                                            }}
+                                                        />
                                                     </div>
                                                     <span className="font-medium">{match.awayTeam.name}</span>
                                                 </div>

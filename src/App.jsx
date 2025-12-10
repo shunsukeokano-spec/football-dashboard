@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from './components/Layout';
+import { Bug } from 'lucide-react';
 import { MatchCard } from './components/MatchCard';
 import { MatchDetails } from './components/MatchDetails';
 import { TeamDetails } from './components/TeamDetails';
@@ -8,7 +9,9 @@ import { SettingsModal } from './components/SettingsModal';
 import { FavoriteTeams } from './components/FavoriteTeams';
 import { LeaguePage } from './components/LeaguePage';
 import { WorldCupLayout } from './components/WorldCupLayout';
-import { subscribeToUpdates } from './services/apiDataService';
+import { PlayerModal } from './components/PlayerModal';
+import { DebugView } from './components/DebugView';
+import { subscribeToUpdates, getApiError } from './services/apiDataService';
 import { translations } from './utils/translations';
 
 function App() {
@@ -41,6 +44,11 @@ function App() {
 
   useEffect(() => {
     const unsubscribe = subscribeToUpdates((data) => {
+      console.log(`[App] Received ${data.length} matches from service`);
+      if (data.length > 0) {
+        console.log('[App] First match:', data[0]);
+        console.log('[App] Match statuses:', data.map(m => m.status));
+      }
       setMatches(data);
       setLoading(false);
     }, language);
@@ -77,6 +85,7 @@ function App() {
       setShowSettings(true);
     } else if (view === 'league') {
       setSelectedLeagueId(leagueId);
+      setCurrentView('league');
     } else {
       setCurrentView(view);
       setSelectedLeagueId(null);
@@ -113,7 +122,7 @@ function App() {
           onNavigate={handleNavigation}
           language={language}
         >
-          {currentView === 'dashboard' ? (
+          {currentView === 'dashboard' && (
             <div className="flex-1 overflow-y-auto bg-background p-4 md:p-8 custom-scrollbar">
               {/* Header */}
               <div className="flex justify-between items-center mb-8">
@@ -133,8 +142,27 @@ function App() {
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                     <span className="text-sm font-medium">{liveMatches.length} {t.live}</span>
                   </div>
+                  <button
+                    onClick={() => setCurrentView('debug')}
+                    className="p-2 text-muted-foreground hover:text-red-500 transition-colors"
+                    title="Debug API"
+                  >
+                    <Bug size={20} />
+                  </button>
                 </div>
               </div>
+
+              {/* API ERROR BANNER */}
+              {getApiError() && (
+                <div className="mb-6 bg-red-500/10 border border-red-500/50 p-4 rounded-xl flex items-start space-x-3 text-red-500 animate-in slide-in-from-top-2">
+                  <Bug className="flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="font-bold">API Error Detected</h3>
+                    <pre className="text-xs mt-1 bg-red-500/5 p-2 rounded">{JSON.stringify(getApiError(), null, 2)}</pre>
+                    <p className="text-sm mt-2">The API provider has rejected the request. Please wait or upgrade plan.</p>
+                  </div>
+                </div>
+              )}
 
               {/* Favorite Teams */}
               <FavoriteTeams onTeamClick={handleTeamClick} language={language} />
@@ -242,10 +270,23 @@ function App() {
                 </div>
               )}
             </div>
-          ) : (
+          )}
+
+          {currentView === 'schedule' && (
             <Schedule
               language={language}
               onMatchClick={setSelectedMatchId}
+            />
+          )}
+
+          {currentView === 'league' && selectedLeagueId && (
+            <LeaguePage
+              leagueId={selectedLeagueId}
+              onClose={() => setCurrentView('dashboard')}
+              onTeamClick={handleTeamClick}
+              onMatchClick={(matchId) => setSelectedMatchId(matchId)}
+              matches={matches}
+              language={language}
             />
           )}
         </Layout>
@@ -277,19 +318,7 @@ function App() {
         />
       )}
 
-      {selectedLeagueId && (
-        <LeaguePage
-          leagueId={selectedLeagueId}
-          onClose={() => setSelectedLeagueId(null)}
-          onTeamClick={handleTeamClick}
-          onMatchClick={(matchId) => {
-            setSelectedMatchId(matchId);
-            setSelectedLeagueId(null);
-          }}
-          matches={matches}
-          language={language}
-        />
-      )}
+
 
       {showSettings && (
         <SettingsModal
@@ -301,6 +330,20 @@ function App() {
           isWorldCupMode={isWorldCupMode}
           onToggleWorldCup={() => setIsWorldCupMode(!isWorldCupMode)}
         />
+      )}
+
+      {currentView === 'debug' && (
+        <div className="fixed inset-0 z-50 bg-background overflow-auto">
+          <div className="p-4">
+            <button
+              onClick={() => setCurrentView('dashboard')}
+              className="mb-4 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg"
+            >
+              Back to Dashboard
+            </button>
+            <DebugView />
+          </div>
+        </div>
       )}
     </div>
   );

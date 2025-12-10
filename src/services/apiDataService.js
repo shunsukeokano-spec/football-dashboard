@@ -107,9 +107,28 @@ const cacheUtils = {
     }
 };
 
+// Rate limit tracking
+let apiError = null;
+
+export const getApiError = () => apiError;
+export const clearApiError = () => { apiError = null; };
+
+// Initialize matches with empty array
 let matches = [];
 let listeners = [];
 let currentLanguage = 'en';
+
+// CLEAR CACHE ON LOAD (Temporary fix for stale data)
+try {
+    console.warn('clearing football_cache to fix stale data');
+    Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('football_cache_')) {
+            localStorage.removeItem(key);
+        }
+    });
+} catch (e) {
+    console.error('Failed to clear cache', e);
+}
 
 export const fetchFixtures = async (lang = 'en', from = null, to = null) => {
     // If no dates provided, use today
@@ -142,12 +161,29 @@ export const fetchFixtures = async (lang = 'en', from = null, to = null) => {
         }
 
         const data = await response.json();
+
+        // Check for API errors (like rate limit)
+        if (data.errors && Object.keys(data.errors).length > 0) {
+            console.error('API Returned Errors:', data.errors);
+            apiError = data.errors;
+            return [];
+        }
+
         const allFixtures = data.response || [];
 
         // Transform with language
         const transformed = allFixtures
             .map(f => transformFixture(f, lang))
             .filter(m => m !== null);
+
+        // Debug logging for filtering issues
+        if (allFixtures.length > 0 && transformed.length === 0) {
+            const leaguesFound = [...new Set(allFixtures.map(f => `${f.league.name} (${f.league.id})`))];
+            console.warn(`WARNING: All ${allFixtures.length} matches were filtered out! Leagues found in API response:`, leaguesFound);
+            console.warn('Active League IDs:', LEAGUE_IDS);
+        } else if (allFixtures.length > 0) {
+            console.log(`Filtered ${allFixtures.length} raw matches down to ${transformed.length} active league matches.`);
+        }
 
         // Cache the result
         cacheUtils.set(cacheKey, transformed);
@@ -211,6 +247,9 @@ const transformFixture = (fixture, lang) => {
         player: event.player.name, // Player names might need API lang param support later
     }));
 
+    // Log successful transforms for debugging
+    console.log(`[Transform] Accepted match: ${leagueName} - ${homeName} vs ${awayName} (${fixture.fixture.status.short})`);
+
     return {
         id: fixture.fixture.id,
         type,
@@ -239,6 +278,43 @@ const transformFixture = (fixture, lang) => {
     };
 };
 
+// Helper to fetch single date (reliable on free tier)
+export const fetchByDate = async (date, lang) => {
+    try {
+        console.log(`Fetching specific date: ${date}`);
+        const response = await fetch(
+            `${API_BASE_URL}/fixtures?date=${date}&timezone=Asia/Tokyo`,
+            {
+                method: 'GET',
+                headers: {
+                    'x-rapidapi-host': 'v3.football.api-sports.io',
+                    'x-rapidapi-key': API_KEY
+                }
+            }
+        );
+
+        if (!response.ok) return [];
+        const data = await response.json();
+
+        // Check for API errors (like rate limit)
+        if (data.errors && Object.keys(data.errors).length > 0) {
+            console.error('API Returned Errors:', data.errors);
+            apiError = data.errors;
+            return [];
+        }
+
+        const allFixtures = data.response || [];
+
+        // Transform
+        return allFixtures
+            .map(f => transformFixture(f, lang))
+            .filter(m => m !== null);
+    } catch (e) {
+        console.error(`Failed to fetch ${date}`, e);
+        return [];
+    }
+};
+
 const loadMatches = async () => {
     console.log(`Fetching matches from API-Football (${currentLanguage})...`);
 
@@ -250,24 +326,26 @@ const loadMatches = async () => {
         return; // Don't make API call
     }
 
-    // Fetch a 3-day window: Yesterday, Today, Tomorrow
-    // This uses 3 API requests per refresh
+    // STRATEGY CHANGE: 
+    // Range queries (from/to) are failing on Free Tier even with correct dates.
+    // We will mimic the specific-date fetch that worked in DebugView.
+    // Fetch Yesterday, Today, Tomorrow in parallel.
+
     const today = new Date();
-    const fromDate = new Date(today);
-    fromDate.setDate(today.getDate() - 1); // Yesterday
-    const toDate = new Date(today);
-    toDate.setDate(today.getDate() + 1); // Tomorrow
+    const dates = [-1, 0, 1].map(offset => {
+        const d = new Date(today);
+        d.setDate(today.getDate() + offset);
+        return d.toISOString().split('T')[0];
+    });
 
-    const fromStr = fromDate.toISOString().split('T')[0];
-    const toStr = toDate.toISOString().split('T')[0];
+    const results = await Promise.all(dates.map(d => fetchByDate(d, currentLanguage)));
+    const combinedMatches = results.flat().sort((a, b) => a.startTime - b.startTime);
 
-    const transformed = await fetchFixtures(currentLanguage, fromStr, toStr);
-
-    if (transformed.length > 0) {
-        matches = transformed;
-        console.log(`Loaded ${matches.length} matches from ${fromStr} to ${toStr}`);
+    if (combinedMatches.length > 0) {
+        matches = combinedMatches;
+        console.log(`Loaded ${matches.length} matches from 3 separate days`);
     } else if (matches.length === 0) {
-        console.warn('No matches available in the 7-day window');
+        console.warn('No matches available in the 3-day window.');
     } else {
         console.warn('API call failed or returned no data, keeping existing matches');
     }
@@ -560,7 +638,8 @@ export const fetchLeagueStandings = async (leagueId, season = getCurrentSeason()
             `${API_BASE_URL}/standings?league=${leagueId}&season=${season}`,
             {
                 headers: {
-                    'x-apisports-key': API_KEY
+                    'x-rapidapi-host': 'v3.football.api-sports.io',
+                    'x-rapidapi-key': API_KEY
                 }
             }
         );
@@ -570,8 +649,17 @@ export const fetchLeagueStandings = async (leagueId, season = getCurrentSeason()
         }
 
         const data = await response.json();
+        console.log(`Standings response for ${leagueId}/${season}:`, data.results, 'results');
 
         if (!data.response || data.response.length === 0) {
+            console.warn(`No standings found for ${leagueId} in season ${season}.`);
+            // Retry with previous season if we haven't gone back too far (e.g. limit to 2 years back)
+            // If we started at 2025, we try 2024. If 2024, try 2023.
+            const currentYear = new Date().getFullYear();
+            if (season >= currentYear - 1) {
+                console.log(`Retrying standings for league ${leagueId} with season ${season - 1}`);
+                return fetchLeagueStandings(leagueId, season - 1);
+            }
             return null;
         }
 
@@ -616,7 +704,8 @@ export const fetchTopScorers = async (leagueId, season = getCurrentSeason(), lim
             `${API_BASE_URL}/players/topscorers?league=${leagueId}&season=${season}`,
             {
                 headers: {
-                    'x-apisports-key': API_KEY
+                    'x-rapidapi-host': 'v3.football.api-sports.io',
+                    'x-rapidapi-key': API_KEY
                 }
             }
         );
@@ -628,6 +717,12 @@ export const fetchTopScorers = async (leagueId, season = getCurrentSeason(), lim
         const data = await response.json();
 
         if (!data.response || data.response.length === 0) {
+            console.warn(`No top scorers found for ${leagueId} in season ${season}.`);
+            const currentYear = new Date().getFullYear();
+            if (season >= currentYear - 1) {
+                console.log(`Retrying top scorers for league ${leagueId} with season ${season - 1}`);
+                return fetchTopScorers(leagueId, season - 1, limit);
+            }
             return [];
         }
 
@@ -668,7 +763,8 @@ export const fetchPlayerStats = async (playerId, season = getCurrentSeason()) =>
             `${API_BASE_URL}/players?id=${playerId}&season=${season}`,
             {
                 headers: {
-                    'x-apisports-key': API_KEY
+                    'x-rapidapi-host': 'v3.football.api-sports.io',
+                    'x-rapidapi-key': API_KEY
                 }
             }
         );

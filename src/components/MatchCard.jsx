@@ -38,10 +38,22 @@ export const MatchCard = ({ match, language = 'en', onClick, favoriteTeams = [] 
                 {/* Home Team */}
                 <div className="flex flex-col items-center w-1/3 relative">
                     {isHomeFavorite && <div className="absolute -top-1 -right-1 text-yellow-500"><Star size={12} fill="currentColor" /></div>}
-                    <div className={`w-12 h-12 rounded-full mb-2 flex items-center justify-center text-white font-bold text-sm shadow-lg ${match.homeTeam.color}`}>
-                        {match.homeTeam.short}
+                    <div className={`w-12 h-12 mb-2 flex items-center justify-center shadow-lg bg-white rounded-full p-1`}>
+                        <img
+                            src={match.homeTeam.logo}
+                            alt={match.homeTeam.name}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.style.display = 'none';
+                                e.target.parentNode.classList.add(match.homeTeam.color);
+                                e.target.parentNode.innerText = match.homeTeam.short;
+                                e.target.parentNode.classList.remove('bg-white', 'p-1');
+                                e.target.parentNode.classList.add('text-white', 'font-bold', 'text-sm');
+                            }}
+                        />
                     </div>
-                    <span className="font-semibold text-sm text-center">{match.homeTeam.name}</span>
+                    <span className="font-semibold text-sm text-center line-clamp-2">{match.homeTeam.name}</span>
                 </div>
 
                 {/* Score */}
@@ -64,10 +76,22 @@ export const MatchCard = ({ match, language = 'en', onClick, favoriteTeams = [] 
                 {/* Away Team */}
                 <div className="flex flex-col items-center w-1/3 relative">
                     {isAwayFavorite && <div className="absolute -top-1 -right-1 text-yellow-500"><Star size={12} fill="currentColor" /></div>}
-                    <div className={`w-12 h-12 rounded-full mb-2 flex items-center justify-center text-white font-bold text-sm shadow-lg ${match.awayTeam.color}`}>
-                        {match.awayTeam.short}
+                    <div className={`w-12 h-12 mb-2 flex items-center justify-center shadow-lg bg-white rounded-full p-1`}>
+                        <img
+                            src={match.awayTeam.logo}
+                            alt={match.awayTeam.name}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.style.display = 'none';
+                                e.target.parentNode.classList.add(match.awayTeam.color);
+                                e.target.parentNode.innerText = match.awayTeam.short;
+                                e.target.parentNode.classList.remove('bg-white', 'p-1');
+                                e.target.parentNode.classList.add('text-white', 'font-bold', 'text-sm');
+                            }}
+                        />
                     </div>
-                    <span className="font-semibold text-sm text-center">{match.awayTeam.name}</span>
+                    <span className="font-semibold text-sm text-center line-clamp-2">{match.awayTeam.name}</span>
                 </div>
             </div>
 

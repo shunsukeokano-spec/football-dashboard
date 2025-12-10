@@ -45,87 +45,88 @@ export const LeaguePage = ({ leagueId, onClose, onTeamClick, onMatchClick, match
     ];
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200"
-            onClick={onClose}
-        >
-            <div
-                className="bg-card w-full max-w-6xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-border"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* Header */}
-                <div className="relative bg-gradient-to-r from-primary/20 to-primary/10 p-6 border-b border-border">
-                    <button
-                        onClick={onClose}
-                        className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors"
-                    >
-                        <X size={20} />
-                    </button>
+        <div className="flex-1 flex flex-col h-full bg-background animate-in fade-in duration-200">
+            {/* Header */}
+            <div className="relative bg-gradient-to-r from-primary/20 to-primary/10 p-6 border-b border-border">
+                <h2 className="text-2xl font-bold mb-2">{leagueName}</h2>
+                <p className="text-sm text-muted-foreground">Season 2024/2025</p>
+            </div>
 
-                    <h2 className="text-2xl font-bold mb-2">{leagueName}</h2>
-                    <p className="text-sm text-muted-foreground">Season 2024/2025</p>
-                </div>
+            {/* Tabs */}
+            <div className="flex border-b border-border bg-muted/30">
+                {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 font-medium transition-colors ${activeTab === tab.id
+                                ? 'text-primary border-b-2 border-primary bg-background'
+                                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                }`}
+                        >
+                            <Icon size={18} />
+                            <span className="hidden sm:inline">{tab.label}</span>
+                        </button>
+                    );
+                })}
+            </div>
 
-                {/* Tabs */}
-                <div className="flex border-b border-border bg-muted/30">
-                    {tabs.map((tab) => {
-                        const Icon = tab.icon;
-                        return (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 font-medium transition-colors ${activeTab === tab.id
-                                    ? 'text-primary border-b-2 border-primary bg-background'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                                    }`}
-                            >
-                                <Icon size={18} />
-                                <span className="hidden sm:inline">{tab.label}</span>
-                            </button>
-                        );
-                    })}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 bg-background custom-scrollbar">
-                    {loading ? (
-                        <div className="flex justify-center py-20">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                        </div>
-                    ) : (
-                        <>
-                            {activeTab === 'standings' && (
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                {loading ? (
+                    <div className="flex justify-center py-20">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                    </div>
+                ) : (
+                    <>
+                        {activeTab === 'standings' && (
+                            standings ? (
                                 <StandingsTable standings={standings} onTeamClick={onTeamClick} />
-                            )}
-
-                            {activeTab === 'scorers' && (
-                                <TopScorers scorers={topScorers} onTeamClick={onTeamClick} />
-                            )}
-
-                            {activeTab === 'matches' && (
-                                <div>
-                                    {recentMatches.length > 0 ? (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {recentMatches.map((match) => (
-                                                <MatchCard
-                                                    key={match.id}
-                                                    match={match}
-                                                    onClick={() => onMatchClick(match.id)}
-                                                    language={language}
-                                                />
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-20 text-muted-foreground">
-                                            <Calendar size={48} className="mx-auto mb-4 opacity-50" />
-                                            <p>No recent matches available for this league</p>
-                                        </div>
-                                    )}
+                            ) : (
+                                <div className="text-center py-20 text-muted-foreground animate-in fade-in zoom-in-95 duration-300">
+                                    <Trophy size={48} className="mx-auto mb-4 opacity-20" />
+                                    <p className="text-lg font-medium">No standings available</p>
+                                    <p className="text-sm">Data might be missing for the current season</p>
                                 </div>
-                            )}
-                        </>
-                    )}
-                </div>
+                            )
+                        )}
+
+                        {activeTab === 'scorers' && (
+                            topScorers && topScorers.length > 0 ? (
+                                <TopScorers scorers={topScorers} onTeamClick={onTeamClick} />
+                            ) : (
+                                <div className="text-center py-20 text-muted-foreground animate-in fade-in zoom-in-95 duration-300">
+                                    <Target size={48} className="mx-auto mb-4 opacity-20" />
+                                    <p className="text-lg font-medium">No top scorers available</p>
+                                    <p className="text-sm">Data might be missing for the current season</p>
+                                </div>
+                            )
+                        )}
+
+                        {activeTab === 'matches' && (
+                            <div>
+                                {recentMatches.length > 0 ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {recentMatches.map((match) => (
+                                            <MatchCard
+                                                key={match.id}
+                                                match={match}
+                                                onClick={() => onMatchClick(match.id)}
+                                                language={language}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-20 text-muted-foreground">
+                                        <Calendar size={48} className="mx-auto mb-4 opacity-50" />
+                                        <p>No recent matches available for this league</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </>
+                )}
             </div>
         </div>
     );
