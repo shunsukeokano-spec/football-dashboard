@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Trophy, Calendar, Settings, Globe, Shield, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Trophy, Calendar, Settings, Globe, Shield, Menu, X, LogOut } from 'lucide-react';
 import { translations } from '../utils/translations';
 
 const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
@@ -68,29 +68,32 @@ export const WorldCupLayout = ({ children, activeTab, onNavigate, language = 'en
                     </button>
                 </div>
 
-                {/* Navigation */}
-                <nav className="flex-1 px-4 space-y-2 py-6 overflow-y-auto">
+
+                <nav className="flex-1 px-4 space-y-2 py-4 overflow-y-auto">
                     <SidebarItem
                         icon={LayoutDashboard}
-                        label="Overview"
-                        active={activeTab === 'dashboard'}
+                        label="Overview" // Renamed from Matches/Dashboard per request
+                        active={activeTab === 'dashboard' || !activeTab}
                         onClick={() => handleMobileNavigate('dashboard')}
                     />
+
                     <SidebarItem
-                        icon={Trophy}
-                        label="Knockout Bracket"
-                        active={activeTab === 'bracket'}
-                        onClick={() => handleMobileNavigate('bracket')}
-                    />
-                    <SidebarItem
-                        icon={Shield}
+                        icon={Shield} // Using Shield icon for Groups
                         label="Group Stage"
                         active={activeTab === 'groups'}
                         onClick={() => handleMobileNavigate('groups')}
                     />
+
+                    <SidebarItem
+                        icon={Trophy}
+                        label="Knockout Stage" // Renamed from Bracket
+                        active={activeTab === 'bracket'}
+                        onClick={() => handleMobileNavigate('bracket')}
+                    />
+
                     <SidebarItem
                         icon={Calendar}
-                        label="Schedule"
+                        label="Match Schedule"
                         active={activeTab === 'schedule'}
                         onClick={() => handleMobileNavigate('schedule')}
                     />
@@ -98,6 +101,13 @@ export const WorldCupLayout = ({ children, activeTab, onNavigate, language = 'en
                     <div className="pt-6 pb-2">
                         <div className="h-px bg-gradient-to-r from-transparent via-slate-600 to-transparent mx-4"></div>
                     </div>
+
+                    <SidebarItem
+                        icon={LogOut}
+                        label="Back to Dashboard"
+                        active={false}
+                        onClick={() => handleMobileNavigate('exit')}
+                    />
 
                     <SidebarItem
                         icon={Settings}

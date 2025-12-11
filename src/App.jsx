@@ -9,6 +9,9 @@ import { SettingsModal } from './components/SettingsModal';
 import { FavoriteTeams } from './components/FavoriteTeams';
 import { LeaguePage } from './components/LeaguePage';
 import { WorldCupLayout } from './components/WorldCupLayout';
+import { WorldCupCalendar } from './components/WorldCupCalendar';
+import { WorldCupBracket } from './components/WorldCupBracket';
+import { WorldCupGroups } from './components/WorldCupGroups';
 import { PlayerModal } from './components/PlayerModal';
 import { DebugView } from './components/DebugView';
 import { subscribeToUpdates, getApiError } from './services/apiDataService';
@@ -86,6 +89,9 @@ function App() {
     } else if (view === 'league') {
       setSelectedLeagueId(leagueId);
       setCurrentView('league');
+    } else if (view === 'world-cup') {
+      setIsWorldCupMode(true);
+      setCurrentView('world-cup');
     } else {
       setCurrentView(view);
       setSelectedLeagueId(null);
@@ -96,25 +102,33 @@ function App() {
     <div className={`flex h-screen bg-background text-foreground ${theme}`}>
       {isWorldCupMode ? (
         <WorldCupLayout
-          activeTab={currentView}
-          onNavigate={handleNavigation}
+          activeTab={selectedLeagueId || 'dashboard'} // Use selectedLeagueId, default to dashboard
+          onNavigate={(view) => {
+            if (view === 'exit') {
+              setIsWorldCupMode(false); // Disable World Cup mode
+              setCurrentView('dashboard');
+              setSelectedLeagueId(null);
+            } else {
+              setSelectedLeagueId(view);
+            }
+          }}
           language={language}
         >
-          {/* World Cup Content Placeholder */}
-          <div className="p-8">
-            <h2 className="text-2xl font-bold mb-4 text-slate-100">World Cup Dashboard</h2>
-            <p className="text-slate-400">Tournament features coming soon...</p>
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Placeholder Cards */}
-              <div className="bg-[#1e293b] p-6 rounded-xl border border-slate-700 shadow-lg">
-                <h3 className="font-bold text-slate-200 mb-2">Group A</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm text-slate-400"><span>USA</span><span>0</span></div>
-                  <div className="flex justify-between text-sm text-slate-400"><span>Wales</span><span>0</span></div>
-                </div>
+          {selectedLeagueId === 'schedule' && <WorldCupCalendar />}
+          {selectedLeagueId === 'bracket' && <WorldCupBracket />}
+          {selectedLeagueId === 'groups' && <WorldCupGroups />}
+          {(selectedLeagueId === 'dashboard' || !selectedLeagueId) && (
+            <div className="text-center py-10">
+              <h2 className="text-3xl font-bold text-slate-200 mb-4">FIFA World Cup 2026</h2>
+              <div className="max-w-3xl mx-auto text-slate-400 space-y-4">
+                <p>Hosted by Canada, Mexico, and the United States.</p>
+                <p>48 Teams. 104 Matches. The biggest World Cup ever.</p>
+              </div>
+              <div className="mt-8">
+                <WorldCupCalendar />
               </div>
             </div>
-          </div>
+          )}
         </WorldCupLayout>
       ) : (
         <Layout
@@ -289,6 +303,10 @@ function App() {
               language={language}
             />
           )}
+
+          {currentView === 'debug' && (
+            <DebugView onClose={() => setCurrentView('dashboard')} />
+          )}
         </Layout>
       )}
 
@@ -318,8 +336,6 @@ function App() {
         />
       )}
 
-
-
       {showSettings && (
         <SettingsModal
           onClose={() => setShowSettings(false)}
@@ -331,7 +347,6 @@ function App() {
           onToggleWorldCup={() => setIsWorldCupMode(!isWorldCupMode)}
         />
       )}
-
       {currentView === 'debug' && (
         <div className="fixed inset-0 z-50 bg-background overflow-auto">
           <div className="p-4">

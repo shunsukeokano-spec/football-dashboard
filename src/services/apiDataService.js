@@ -42,7 +42,7 @@ const LEAGUE_NAMES = Object.fromEntries(
 // - December 2024: 2024-2025 season → return 2024
 // - January 2025: 2024-2025 season → return 2024
 // - August 2025: 2025-2026 season → return 2025
-const getCurrentSeason = () => {
+export const getCurrentSeason = () => {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth(); // 0-11 (0=Jan, 11=Dec)
@@ -688,8 +688,14 @@ export const fetchLeagueStandings = async (leagueId, season = getCurrentSeason()
 };
 
 // Fetch top scorers
-export const fetchTopScorers = async (leagueId, season = getCurrentSeason(), limit = 10) => {
-    const cacheKey = `topscorers_${leagueId}_${season}`;
+export const fetchTopScorers = async (leagueId, season, limit = 10) => {
+    // If season is not provided, use current season
+    if (!season) season = getCurrentSeason();
+
+    console.log(`Fetching top scorers for league ${leagueId}, season ${season}, limit ${limit}`);
+
+    // Check cache
+    const cacheKey = `scorers_${leagueId}_${season}_${limit}`;
 
     // Check cache first (6 hours for top scorers)
     const cached = cacheUtils.get(cacheKey, CACHE_DURATIONS.topScorers);

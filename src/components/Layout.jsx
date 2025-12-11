@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Trophy, Calendar, Settings, User, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Trophy, Calendar, Settings, User, Menu, X, ChevronLeft, ChevronRight, Globe } from 'lucide-react';
 import { translations } from '../utils/translations';
 
 const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
@@ -101,7 +101,16 @@ export const Layout = ({ children, activeTab, onNavigate, language = 'en' }) => 
                         onClick={() => handleMobileNavigate('schedule')}
                     />
 
-                    {/* Leagues Section */}
+                    <div className="pt-4 pb-2">
+                        <div className="h-px bg-border mx-4"></div>
+                    </div>
+
+                    <SidebarItem
+                        icon={Globe}
+                        label="World Cup 2026"
+                        active={activeTab === 'world-cup'}
+                        onClick={() => handleMobileNavigate('world-cup')}
+                    />
                     <div className="pt-4">
                         {!isSidebarCollapsed && (
                             <p className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
