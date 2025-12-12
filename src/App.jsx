@@ -35,6 +35,7 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [wcSelectedGroup, setWcSelectedGroup] = useState(null);
 
   // Persist settings
   useEffect(() => {
@@ -114,9 +115,12 @@ function App() {
           }}
           language={language}
         >
-          {selectedLeagueId === 'schedule' && <WorldCupCalendar />}
+          {selectedLeagueId === 'schedule' && <WorldCupCalendar onGroupClick={(group) => {
+            setWcSelectedGroup(group);
+            setSelectedLeagueId('groups');
+          }} />}
           {selectedLeagueId === 'bracket' && <WorldCupBracket />}
-          {selectedLeagueId === 'groups' && <WorldCupGroups />}
+          {selectedLeagueId === 'groups' && <WorldCupGroups activeGroup={wcSelectedGroup} onSelectGroup={setWcSelectedGroup} />}
           {(selectedLeagueId === 'dashboard' || !selectedLeagueId) && (
             <div className="text-center py-10">
               <h2 className="text-3xl font-bold text-slate-200 mb-4">FIFA World Cup 2026</h2>
@@ -125,7 +129,10 @@ function App() {
                 <p>48 Teams. 104 Matches. The biggest World Cup ever.</p>
               </div>
               <div className="mt-8">
-                <WorldCupCalendar />
+                <WorldCupCalendar onGroupClick={(group) => {
+                  setWcSelectedGroup(group);
+                  setSelectedLeagueId('groups');
+                }} />
               </div>
             </div>
           )}

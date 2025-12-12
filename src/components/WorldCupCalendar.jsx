@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { schedule, groups } from '../data/worldCupData';
 import { MapPin, Calendar as CalendarIcon, Filter, X } from 'lucide-react';
 
-export const WorldCupCalendar = () => {
+export const WorldCupCalendar = ({ onGroupClick }) => {
     const [selectedTeamId, setSelectedTeamId] = useState(null);
 
     // Flatten all teams for the filter list
@@ -82,9 +82,18 @@ export const WorldCupCalendar = () => {
                                 {matchesByDate[date].map(match => (
                                     <div key={match.id} className="bg-[#0f172a] p-4 rounded-lg border border-slate-700 hover:border-blue-500/50 transition-colors group">
                                         <div className="flex justify-between items-start mb-4">
-                                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-400 border border-slate-700">
-                                                {match.group ? `Group ${match.group}` : match.stage}
-                                            </span>
+                                            {match.group ? (
+                                                <button
+                                                    onClick={() => onGroupClick && onGroupClick(match.group)}
+                                                    className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-400 border border-slate-700 ${onGroupClick ? 'hover:bg-blue-500/10 hover:text-blue-400 hover:border-blue-500/50 transition-colors cursor-pointer' : ''}`}
+                                                >
+                                                    Group {match.group}
+                                                </button>
+                                            ) : (
+                                                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-400 border border-slate-700">
+                                                    {match.stage}
+                                                </span>
+                                            )}
                                             <div className="flex items-center text-xs text-slate-400">
                                                 <MapPin size={12} className="mr-1" />
                                                 {match.venue.city}

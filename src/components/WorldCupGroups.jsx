@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import { groups, schedule } from '../data/worldCupData';
 import { ChevronRight, Calendar, MapPin, X } from 'lucide-react';
 
-export const WorldCupGroups = () => {
-    const [selectedGroup, setSelectedGroup] = useState(null);
+export const WorldCupGroups = ({ activeGroup, onSelectGroup }) => {
+    // If props are not provided (standalone usage), establish local state (fallback)
+    const [localGroup, setLocalGroup] = useState(null);
+    const selectedGroup = activeGroup !== undefined ? activeGroup : localGroup;
+    const setSelectedGroup = onSelectGroup || setLocalGroup;
 
     const [selectedGroupTeam, setSelectedGroupTeam] = useState(null);
 
@@ -38,39 +41,46 @@ export const WorldCupGroups = () => {
                     <span>Back to Groups</span>
                 </button>
 
-                <div className="bg-[#1e293b] rounded-xl border border-slate-700 p-6 mb-8">
-                    <div className="flex justify-between items-start mb-6">
-                        <h2 className="text-3xl font-bold text-white flex items-center">
-                            <span className="w-1.5 h-8 bg-blue-500 rounded-full mr-4"></span>
-                            Group {selectedGroup}
-                        </h2>
-                        {selectedGroupTeam && (
-                            <button
-                                onClick={() => setSelectedGroupTeam(null)}
-                                className="text-sm text-blue-400 hover:text-blue-300 flex items-center"
-                            >
-                                <X size={14} className="mr-1" />
-                                Clear Filter
-                            </button>
-                        )}
+                <div className="bg-[#1e293b] rounded-xl border border-slate-700 p-6 mb-8 relative overflow-hidden">
+                    {/* Big Embossed Letter Behind Content */}
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 font-black text-[12rem] md:text-[20rem] text-white/5 pointer-events-none select-none z-0 leading-none">
+                        {selectedGroup}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {groupTeams.map(team => (
-                            <div
-                                key={team.id}
-                                onClick={() => setSelectedGroupTeam(selectedGroupTeam === team.id ? null : team.id)}
-                                className={`p-4 rounded-lg flex items-center space-x-4 border cursor-pointer transition-all ${selectedGroupTeam === team.id
+                    <div className="relative z-10">
+                        <div className="flex justify-between items-start mb-6">
+                            <h2 className="text-3xl font-bold text-white flex items-center">
+                                <span className="w-1.5 h-8 bg-blue-500 rounded-full mr-4"></span>
+                                Group {selectedGroup}
+                            </h2>
+                            {selectedGroupTeam && (
+                                <button
+                                    onClick={() => setSelectedGroupTeam(null)}
+                                    className="text-sm text-blue-400 hover:text-blue-300 flex items-center"
+                                >
+                                    <X size={14} className="mr-1" />
+                                    Clear Filter
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {groupTeams.map(team => (
+                                <div
+                                    key={team.id}
+                                    onClick={() => setSelectedGroupTeam(selectedGroupTeam === team.id ? null : team.id)}
+                                    className={`p-4 rounded-lg flex items-center space-x-4 border cursor-pointer transition-all ${selectedGroupTeam === team.id
                                         ? 'bg-blue-600/20 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
-                                        : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-500'
-                                    }`}
-                            >
-                                <span className="text-3xl">{team.flag}</span>
-                                <span className={`font-bold ${selectedGroupTeam === team.id ? 'text-white' : 'text-slate-200'}`}>
-                                    {team.name}
-                                </span>
-                            </div>
-                        ))}
+                                        : 'bg-slate-800/80 border-slate-700/50 hover:bg-slate-800 hover:border-slate-500'
+                                        }`}
+                                >
+                                    <span className="text-3xl">{team.flag}</span>
+                                    <span className={`font-bold ${selectedGroupTeam === team.id ? 'text-white' : 'text-slate-200'}`}>
+                                        {team.name}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
@@ -123,9 +133,9 @@ export const WorldCupGroups = () => {
                 <div
                     key={group}
                     onClick={() => setSelectedGroup(group)}
-                    className="bg-[#1e293b] rounded-xl border border-slate-700 p-5 cursor-pointer hover:bg-slate-800 hover:border-blue-500 transition-all duration-300 group relative overflow-hidden"
+                    className="bg-[#1e293b] rounded-xl border border-slate-700 p-5 cursor-pointer hover:bg-slate-800 hover:border-blue-500 transition-all duration-300 group relative overflow-hidden h-40 flex flex-col justify-end"
                 >
-                    <div className="absolute top-0 right-0 p-4 opacity-10 font-black text-6xl text-slate-500 group-hover:text-blue-500 transition-colors select-none">
+                    <div className="absolute top-[-20%] right-[-10%] opacity-10 font-black text-[10rem] text-slate-500 group-hover:text-blue-500 transition-colors select-none leading-none z-0">
                         {group}
                     </div>
 
