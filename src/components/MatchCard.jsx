@@ -53,7 +53,7 @@ export const MatchCard = ({ match, language = 'en', onClick, favoriteTeams = [] 
                             }}
                         />
                     </div>
-                    <span className="font-semibold text-sm text-center line-clamp-2">{match.homeTeam.name}</span>
+                    <span className="font-semibold text-base text-center line-clamp-2 leading-tight">{match.homeTeam.name}</span>
                 </div>
 
                 {/* Score */}
@@ -91,7 +91,7 @@ export const MatchCard = ({ match, language = 'en', onClick, favoriteTeams = [] 
                             }}
                         />
                     </div>
-                    <span className="font-semibold text-sm text-center line-clamp-2">{match.awayTeam.name}</span>
+                    <span className="font-semibold text-base text-center line-clamp-2 leading-tight">{match.awayTeam.name}</span>
                 </div>
             </div>
 

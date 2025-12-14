@@ -147,8 +147,8 @@ export const WorldCupGroups = ({ activeGroup, onSelectGroup }) => {
 
                         <div className="grid grid-cols-2 gap-3">
                             {groups[group].map(team => (
-                                <div key={team.id} className="flex items-center space-x-2 text-slate-300 text-sm">
-                                    <span className="text-lg">{team.flag}</span>
+                                <div key={team.id} className="flex items-center space-x-2 text-slate-300 text-base font-medium">
+                                    <span className="text-xl">{team.flag}</span>
                                     <span className="truncate">{team.name}</span>
                                 </div>
                             ))}
