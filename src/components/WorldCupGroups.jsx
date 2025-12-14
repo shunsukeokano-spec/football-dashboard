@@ -133,7 +133,7 @@ export const WorldCupGroups = ({ activeGroup, onSelectGroup }) => {
                 <div
                     key={group}
                     onClick={() => setSelectedGroup(group)}
-                    className="bg-[#1e293b] rounded-xl border border-slate-700 p-5 cursor-pointer hover:bg-slate-800 hover:border-blue-500 transition-all duration-300 group relative overflow-hidden h-40 flex flex-col justify-end"
+                    className="bg-[#1e293b] rounded-xl border border-slate-700 p-5 cursor-pointer hover:bg-slate-800 hover:border-blue-500 transition-all duration-300 group relative overflow-hidden"
                 >
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 font-black text-[10rem] text-white/5 group-hover:text-blue-500/10 transition-colors select-none leading-none z-0">
                         {group}
@@ -145,11 +145,11 @@ export const WorldCupGroups = ({ activeGroup, onSelectGroup }) => {
                             <ChevronRight className="text-slate-500 group-hover:text-blue-400 transform group-hover:translate-x-1 transition-all" />
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-3">
                             {groups[group].map(team => (
-                                <div key={team.id} className="flex items-center space-x-3 text-slate-300 text-sm">
+                                <div key={team.id} className="flex items-center space-x-2 text-slate-300 text-sm">
                                     <span className="text-lg">{team.flag}</span>
-                                    <span>{team.name}</span>
+                                    <span className="truncate">{team.name}</span>
                                 </div>
                             ))}
                         </div>

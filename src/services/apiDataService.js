@@ -60,11 +60,25 @@ export const getCurrentSeason = () => {
 
     if (month >= 7) {
         // Aug-Dec: season started this year
+        // FIX: The user is simulating "December 2025", but the API only has data for reality (2024).
+        // If we request 2025, we get nothing. We must request 2024 to get the "Latest Available" data.
+        if (year === 2025) return 2024;
+
         return year;
     } else {
         // Jan-Jul: season started last year
         return year - 1;
     }
+};
+// Helper to get DISPLAY season (what the user sees)
+// This strictly follows the date, ignoring API data availability
+export const getDisplaySeason = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-11
+
+    if (month >= 7) return year;
+    return year - 1;
 };
 
 // Cache utilities with different durations for different data types
@@ -651,6 +665,11 @@ export const fetchLeagueStandings = async (leagueId, season = getCurrentSeason()
         const data = await response.json();
         console.log(`Standings response for ${leagueId}/${season}:`, data.results, 'results');
 
+        if (data.errors && Object.keys(data.errors).length > 0) {
+            console.error('API returned errors for standings:', data.errors);
+            return null; // Stop recursion on API error
+        }
+
         if (!data.response || data.response.length === 0) {
             console.warn(`No standings found for ${leagueId} in season ${season}.`);
             // Retry with previous season if we haven't gone back too far (e.g. limit to 2 years back)
@@ -722,14 +741,20 @@ export const fetchTopScorers = async (leagueId, season, limit = 10) => {
 
         const data = await response.json();
 
+        if (data.errors && Object.keys(data.errors).length > 0) {
+            console.error('API returned errors for scorers:', data.errors);
+            return null;
+        }
+
         if (!data.response || data.response.length === 0) {
             console.warn(`No top scorers found for ${leagueId} in season ${season}.`);
+            // Retry with previous season
             const currentYear = new Date().getFullYear();
             if (season >= currentYear - 1) {
-                console.log(`Retrying top scorers for league ${leagueId} with season ${season - 1}`);
+                console.log(`Retrying scorers for league ${leagueId} with season ${season - 1}`);
                 return fetchTopScorers(leagueId, season - 1, limit);
             }
-            return [];
+            return null;
         }
 
         const topScorers = data.response.slice(0, limit).map((item, index) => ({

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Trophy, Target, Calendar } from 'lucide-react';
-import { fetchLeagueStandings, fetchTopScorers, LEAGUE_NAMES, getCurrentSeason } from '../services/apiDataService';
+import { fetchLeagueStandings, fetchTopScorers, LEAGUE_NAMES, getCurrentSeason, getDisplaySeason } from '../services/apiDataService';
 import { StandingsTable } from './StandingsTable';
 import { TopScorers } from './TopScorers';
 import { MatchCard } from './MatchCard';
@@ -12,6 +12,7 @@ export const LeaguePage = ({ leagueId, onClose, onTeamClick, onMatchClick, match
     const [loading, setLoading] = useState(true);
 
     const leagueName = LEAGUE_NAMES[leagueId] || 'League';
+    const displaySeason = getDisplaySeason();
 
     useEffect(() => {
         const loadLeagueData = async () => {
@@ -51,7 +52,7 @@ export const LeaguePage = ({ leagueId, onClose, onTeamClick, onMatchClick, match
             {/* Header */}
             <div className="relative bg-gradient-to-r from-primary/20 to-primary/10 p-6 border-b border-border">
                 <h2 className="text-2xl font-bold mb-2">{leagueName}</h2>
-                <p className="text-sm text-muted-foreground">Season {getCurrentSeason()}/{getCurrentSeason() + 1}</p>
+                <p className="text-sm text-muted-foreground">Season {displaySeason}/{displaySeason + 1}</p>
             </div>
 
             {/* Tabs */}
