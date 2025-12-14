@@ -12,6 +12,7 @@ import { WorldCupLayout } from './components/WorldCupLayout';
 import { WorldCupCalendar } from './components/WorldCupCalendar';
 import { WorldCupBracket } from './components/WorldCupBracket';
 import { WorldCupGroups } from './components/WorldCupGroups';
+import { WorldCupOverview } from './components/WorldCupOverview';
 import { PlayerModal } from './components/PlayerModal';
 import { DebugView } from './components/DebugView';
 import { subscribeToUpdates, getApiError } from './services/apiDataService';
@@ -122,12 +123,8 @@ function App() {
           {selectedLeagueId === 'bracket' && <WorldCupBracket />}
           {selectedLeagueId === 'groups' && <WorldCupGroups activeGroup={wcSelectedGroup} onSelectGroup={setWcSelectedGroup} />}
           {(selectedLeagueId === 'dashboard' || !selectedLeagueId) && (
-            <div className="text-center py-10">
-              <h2 className="text-3xl font-bold text-slate-200 mb-4">FIFA World Cup 2026</h2>
-              <div className="max-w-3xl mx-auto text-slate-400 space-y-4">
-                <p>Hosted by Canada, Mexico, and the United States.</p>
-                <p>48 Teams. 104 Matches. The biggest World Cup ever.</p>
-              </div>
+            <div className="space-y-8">
+              <WorldCupOverview />
               <div className="mt-8">
                 <WorldCupCalendar onGroupClick={(group) => {
                   setWcSelectedGroup(group);

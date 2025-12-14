@@ -67,7 +67,7 @@ export const WorldCupCalendar = ({ onGroupClick }) => {
                     const weekday = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
 
                     return (
-                        <div key={date} className="rounded-xl overflow-hidden border border-slate-700/50 bg-[#1e293b]/50">
+                        <div key={date} id={`date-${date}`} className="rounded-xl overflow-hidden border border-slate-700/50 bg-[#1e293b]/50 scroll-mt-24">
                             {/* Premium Date Header */}
                             <div className="bg-[#0B1120] p-4 flex items-center space-x-4 border-l-4 border-yellow-500">
                                 <CalendarIcon size={20} className="text-yellow-500" />

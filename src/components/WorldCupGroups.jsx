@@ -135,7 +135,7 @@ export const WorldCupGroups = ({ activeGroup, onSelectGroup }) => {
                     onClick={() => setSelectedGroup(group)}
                     className="bg-[#1e293b] rounded-xl border border-slate-700 p-5 cursor-pointer hover:bg-slate-800 hover:border-blue-500 transition-all duration-300 group relative overflow-hidden h-40 flex flex-col justify-end"
                 >
-                    <div className="absolute top-[-20%] right-[-10%] opacity-10 font-black text-[10rem] text-slate-500 group-hover:text-blue-500 transition-colors select-none leading-none z-0">
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 font-black text-[10rem] text-white/5 group-hover:text-blue-500/10 transition-colors select-none leading-none z-0">
                         {group}
                     </div>
 
