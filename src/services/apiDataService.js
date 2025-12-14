@@ -100,10 +100,23 @@ const cacheUtils = {
             const cached = localStorage.getItem(`football_cache_${key}`);
             if (!cached) return null;
             const { data, timestamp } = JSON.parse(cached);
+            // Check if expired
             if (Date.now() - timestamp > duration) {
-                localStorage.removeItem(`football_cache_${key}`);
+                // Don't delete immediately, just return null so we try to fetch fresh
                 return null;
             }
+            return data;
+        } catch {
+            return null;
+        }
+    },
+    // New method to get stale data if API fails
+    getStale: (key) => {
+        try {
+            const cached = localStorage.getItem(`football_cache_${key}`);
+            if (!cached) return null;
+            const { data } = JSON.parse(cached);
+            console.log(`Recovering stale data for ${key}`);
             return data;
         } catch {
             return null;
@@ -115,8 +128,18 @@ const cacheUtils = {
                 data,
                 timestamp: Date.now()
             }));
-        } catch (error) {
-            console.warn('Failed to cache data:', error);
+        } catch (e) {
+            console.warn('Cache storage failed:', e);
+            // If quota exceeded, clear old cache and try again
+            try {
+                localStorage.clear();
+                localStorage.setItem(`football_cache_${key}`, JSON.stringify({
+                    data,
+                    timestamp: Date.now()
+                }));
+            } catch (e2) {
+                console.error('Critical cache failure:', e2);
+            }
         }
     }
 };
@@ -199,13 +222,21 @@ export const fetchFixtures = async (lang = 'en', from = null, to = null) => {
             console.log(`Filtered ${allFixtures.length} raw matches down to ${transformed.length} active league matches.`);
         }
 
-        // Cache the result
+        // Cache successful response
         cacheUtils.set(cacheKey, transformed);
 
         return transformed;
     } catch (error) {
         console.error('Error fetching fixtures:', error);
-        return [];
+
+        // Fallback to stale cache if API fails (e.g. Rate Limit)
+        const staleData = cacheUtils.getStale(cacheKey);
+        if (staleData) {
+            console.warn('Using stale match data due to API error');
+            return staleData;
+        }
+
+        return []; // Final fallback to empty array if no stale data
     }
 };
 
@@ -702,6 +733,9 @@ export const fetchLeagueStandings = async (leagueId, season = getCurrentSeason()
         return standings;
     } catch (error) {
         console.error('Error fetching league standings:', error);
+        // Fallback to stale cache
+        const staleData = cacheUtils.getStale(cacheKey);
+        if (staleData) return staleData;
         return null;
     }
 };
