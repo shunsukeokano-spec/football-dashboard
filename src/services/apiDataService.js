@@ -209,8 +209,12 @@ export const fetchFixtures = async (lang = 'en', from = null, to = null) => {
             apiError = data.errors;
             // Fallback to Stale
             const stale = cacheUtils.getStale(cacheKey);
-            if (stale) return stale;
+            if (stale && stale.length > 0) {
+                console.log(`[Fallback] Using Stale Data: ${stale.length} items`);
+                return stale;
+            }
             // Final Fallback to Mock
+            console.log(`[Fallback] Using Mock Data: ${mockMatches?.length} items`);
             return mockMatches;
         }
 
@@ -230,10 +234,24 @@ export const fetchFixtures = async (lang = 'en', from = null, to = null) => {
             console.log(`Filtered ${allFixtures.length} raw matches down to ${transformed.length} active league matches.`);
         }
 
-        // Cache successful response
-        cacheUtils.set(cacheKey, transformed);
+        // Cache successful response (only if we have data)
+        if (transformed.length > 0) {
+            cacheUtils.set(cacheKey, transformed);
+            return transformed;
+        }
 
-        return transformed;
+        // If API returned 0 matches (e.g. no games today), fallback to Stale or Mock
+        // so the user always sees something interesting.
+        console.warn('API returned 0 matches. Falling back to guarantee content.');
+
+        const stale2 = cacheUtils.getStale(cacheKey);
+        if (stale2 && stale2.length > 0) {
+            console.log(`[Fallback Empty] Using Stale Data: ${stale2.length} items`);
+            return stale2;
+        }
+
+        console.log(`[Fallback Empty] Using Mock Data: ${mockMatches?.length} items`);
+        return mockMatches;
     } catch (error) {
         console.error('Error fetching fixtures:', error);
 

@@ -23,7 +23,7 @@ export const mockMatches = [
         },
         homeScore: 2,
         awayScore: 1,
-        status: 'In Play',
+        status: 'LIVE',
         minute: 67,
         startTime: new Date(),
         events: [
@@ -53,7 +53,7 @@ export const mockMatches = [
         },
         homeScore: 0,
         awayScore: 0,
-        status: 'Not Started',
+        status: 'UPCOMING',
         minute: 0,
         startTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours from now
         events: []
@@ -79,7 +79,7 @@ export const mockMatches = [
         },
         homeScore: 3,
         awayScore: 2,
-        status: 'Match Finished',
+        status: 'FT',
         minute: 90,
         startTime: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
         events: [
@@ -111,7 +111,7 @@ export const mockMatches = [
         },
         homeScore: 1,
         awayScore: 1,
-        status: 'In Play',
+        status: 'LIVE',
         minute: 78,
         startTime: new Date(),
         events: [
@@ -140,7 +140,7 @@ export const mockMatches = [
         },
         homeScore: 0,
         awayScore: 0,
-        status: 'Not Started',
+        status: 'UPCOMING',
         minute: 0,
         startTime: new Date(Date.now() + 4 * 60 * 60 * 1000), // 4 hours from now
         events: []
@@ -166,7 +166,7 @@ export const mockMatches = [
         },
         homeScore: 2,
         awayScore: 2,
-        status: 'Match Finished',
+        status: 'FT',
         minute: 90,
         startTime: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
         events: [
