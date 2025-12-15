@@ -156,6 +156,9 @@ let listeners = [];
 let currentLanguage = 'en';
 
 // CLEAR CACHE ON LOAD (Temporary fix for stale data)
+// CLEAR CACHE ON LOAD (Temporary fix for stale data) - REMOVED
+// We now rely on intelligent Stale Fallback, so we MUST NOT clear cache.
+/*
 try {
     console.warn('clearing football_cache to fix stale data');
     Object.keys(localStorage).forEach(key => {
@@ -166,6 +169,7 @@ try {
 } catch (e) {
     console.error('Failed to clear cache', e);
 }
+*/
 
 export const fetchFixtures = async (lang = 'en', from = null, to = null) => {
     // If no dates provided, use today

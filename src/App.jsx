@@ -170,17 +170,7 @@ function App() {
                 </div>
               </div>
 
-              {/* API ERROR BANNER */}
-              {getApiError() && (
-                <div className="mb-6 bg-red-500/10 border border-red-500/50 p-4 rounded-xl flex items-start space-x-3 text-red-500 animate-in slide-in-from-top-2">
-                  <Bug className="flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="font-bold">API Error Detected</h3>
-                    <pre className="text-xs mt-1 bg-red-500/5 p-2 rounded">{JSON.stringify(getApiError(), null, 2)}</pre>
-                    <p className="text-sm mt-2">The API provider has rejected the request. Please wait or upgrade plan.</p>
-                  </div>
-                </div>
-              )}
+              {renderError()}
 
               {/* Favorite Teams */}
               <FavoriteTeams onTeamClick={handleTeamClick} language={language} />
