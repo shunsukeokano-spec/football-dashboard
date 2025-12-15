@@ -207,7 +207,11 @@ export const fetchFixtures = async (lang = 'en', from = null, to = null) => {
         if (data.errors && Object.keys(data.errors).length > 0) {
             console.error('API Returned Errors:', data.errors);
             apiError = data.errors;
-            return [];
+            // Fallback to Stale
+            const stale = cacheUtils.getStale(cacheKey);
+            if (stale) return stale;
+            // Final Fallback to Mock
+            return mockMatches;
         }
 
         const allFixtures = data.response || [];
@@ -240,7 +244,8 @@ export const fetchFixtures = async (lang = 'en', from = null, to = null) => {
             return staleData;
         }
 
-        return []; // Final fallback to empty array if no stale data
+        console.warn('Using mock data as final fallback');
+        return mockMatches; // Final fallback to mock data (Guaranteed Content)
     }
 };
 
