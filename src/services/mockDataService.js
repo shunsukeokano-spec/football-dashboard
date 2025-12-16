@@ -384,3 +384,47 @@ setInterval(() => {
 }, 3000); // Update every 3 seconds
 
 generateInitialMatches();
+
+export const mockMatches = matches;
+
+export const mockStandings = {
+    // Premier League
+    39: [
+        { position: 1, teamId: 1, teamName: 'Arsenal', played: 19, won: 15, drawn: 2, lost: 2, points: 47, form: 'WWWDW', goalsFor: 45, goalsAgainst: 15, goalDifference: 30 },
+        { position: 2, teamId: 2, teamName: 'Man City', played: 19, won: 14, drawn: 3, lost: 2, points: 45, form: 'WWDWW', goalsFor: 48, goalsAgainst: 18, goalDifference: 30 },
+        { position: 3, teamId: 3, teamName: 'Liverpool', played: 19, won: 13, drawn: 4, lost: 2, points: 43, form: 'WWLDW', goalsFor: 40, goalsAgainst: 16, goalDifference: 24 },
+        { position: 4, teamId: 8, teamName: 'Aston Villa', played: 19, won: 12, drawn: 3, lost: 4, points: 39, form: 'WLDWW', goalsFor: 35, goalsAgainst: 20, goalDifference: 15 },
+        { position: 5, teamId: 6, teamName: 'Tottenham', played: 19, won: 11, drawn: 3, lost: 5, points: 36, form: 'LWWDL', goalsFor: 33, goalsAgainst: 25, goalDifference: 8 },
+        { position: 6, teamId: 4, teamName: 'Chelsea', played: 19, won: 10, drawn: 4, lost: 5, points: 34, form: 'WWLLL', goalsFor: 30, goalsAgainst: 28, goalDifference: 2 },
+    ],
+    // La Liga
+    140: [
+        { position: 1, teamId: 9, teamName: 'Real Madrid', played: 19, won: 16, drawn: 2, lost: 1, points: 50, form: 'WWWWW', goalsFor: 42, goalsAgainst: 10, goalDifference: 32 },
+        { position: 2, teamId: 10, teamName: 'Barcelona', played: 19, won: 14, drawn: 3, lost: 2, points: 45, form: 'WDWLW', goalsFor: 38, goalsAgainst: 15, goalDifference: 23 },
+        { position: 3, teamId: 11, teamName: 'Atletico Madrid', played: 19, won: 12, drawn: 4, lost: 3, points: 40, form: 'DWWWD', goalsFor: 30, goalsAgainst: 12, goalDifference: 18 },
+    ],
+    // J League
+    98: [
+        { position: 1, teamId: 28, teamName: 'Vissel Kobe', played: 30, won: 20, drawn: 6, lost: 4, points: 66, form: 'WWLDW', goalsFor: 55, goalsAgainst: 20, goalDifference: 35 },
+        { position: 2, teamId: 29, teamName: 'Yokohama FM', played: 30, won: 19, drawn: 7, lost: 4, points: 64, form: 'WDWWW', goalsFor: 58, goalsAgainst: 25, goalDifference: 33 },
+    ]
+};
+
+export const mockTopScorers = {
+    // Premier League
+    39: [
+        { id: 101, name: 'E. Haaland', team: 'Man City', goals: 18, matches: 19, rating: '8.2', photo: 'https://media.api-sports.io/football/players/1100.png' },
+        { id: 102, name: 'M. Salah', team: 'Liverpool', goals: 14, matches: 19, rating: '7.9', photo: 'https://media.api-sports.io/football/players/306.png' },
+        { id: 103, name: 'B. Saka', team: 'Arsenal', goals: 10, matches: 19, rating: '7.8', photo: 'https://media.api-sports.io/football/players/1465.png' },
+        { id: 104, name: 'O. Watkins', team: 'Aston Villa', goals: 9, matches: 19, rating: '7.5', photo: 'https://media.api-sports.io/football/players/19087.png' },
+    ],
+    // La Liga
+    140: [
+        { id: 201, name: 'J. Bellingham', team: 'Real Madrid', goals: 13, matches: 19, rating: '8.1', photo: 'https://media.api-sports.io/football/players/157519.png' },
+        { id: 202, name: 'R. Lewandowski', team: 'Barcelona', goals: 12, matches: 19, rating: '7.7', photo: 'https://media.api-sports.io/football/players/521.png' },
+    ],
+    // J League
+    98: [
+        { id: 301, name: 'Y. Osako', team: 'Vissel Kobe', goals: 20, matches: 30, rating: '7.9', photo: 'https://media.api-sports.io/football/players/10317.png' },
+    ]
+};

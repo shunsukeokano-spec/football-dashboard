@@ -1,5 +1,5 @@
 import { getTeamName, translations } from '../utils/translations';
-import { mockMatches } from '../data/mockData';
+import { mockMatches, mockStandings, mockTopScorers } from '../data/mockData';
 
 const API_KEY = import.meta.env.VITE_API_FOOTBALL_KEY;
 const API_BASE_URL = 'https://v3.football.api-sports.io';
@@ -735,7 +735,10 @@ export const fetchLeagueStandings = async (leagueId, season = getCurrentSeason()
                 console.log(`Retrying standings for league ${leagueId} with season ${season - 1}`);
                 return fetchLeagueStandings(leagueId, season - 1);
             }
-            return null;
+
+            // Fallback to Mock Data
+            console.log(`[Fallback] Using Mock Standings for league ${leagueId}`);
+            return mockStandings[leagueId] || [];
         }
 
         const standings = data.response[0].league.standings[0].map(team => ({
@@ -761,7 +764,10 @@ export const fetchLeagueStandings = async (leagueId, season = getCurrentSeason()
         // Fallback to stale cache
         const staleData = cacheUtils.getStale(cacheKey);
         if (staleData) return staleData;
-        return null;
+
+        // Final fallback to Mock Data
+        console.log(`[Fallback] Using Mock Standings for league ${leagueId}`);
+        return mockStandings[leagueId] || [];
     }
 };
 
@@ -802,7 +808,11 @@ export const fetchTopScorers = async (leagueId, season, limit = 10) => {
 
         if (data.errors && Object.keys(data.errors).length > 0) {
             console.error('API returned errors for scorers:', data.errors);
-            return null;
+            const staleData = cacheUtils.getStale(cacheKey);
+            if (staleData) return staleData;
+
+            console.log(`[Fallback] Using Mock Top Scorers for league ${leagueId}`);
+            return mockTopScorers[leagueId] || [];
         }
 
         if (!data.response || data.response.length === 0) {
@@ -813,7 +823,10 @@ export const fetchTopScorers = async (leagueId, season, limit = 10) => {
                 console.log(`Retrying scorers for league ${leagueId} with season ${season - 1}`);
                 return fetchTopScorers(leagueId, season - 1, limit);
             }
-            return null;
+
+            // Fallback to Mock Data
+            console.log(`[Fallback] Using Mock Top Scorers for league ${leagueId}`);
+            return mockTopScorers[leagueId] || [];
         }
 
         const topScorers = data.response.slice(0, limit).map((item, index) => ({
@@ -829,10 +842,18 @@ export const fetchTopScorers = async (leagueId, season, limit = 10) => {
             appearances: item.statistics[0].games.appearences || 0
         }));
 
+        cacheUtils.set(cacheKey, topScorers);
         return topScorers;
     } catch (error) {
         console.error('Error fetching top scorers:', error);
-        return [];
+
+        // Fallback to stale cache
+        const staleData = cacheUtils.getStale(cacheKey);
+        if (staleData) return staleData;
+
+        // Final fallback to Mock Data
+        console.log(`[Fallback] Using Mock Top Scorers for league ${leagueId}`);
+        return mockTopScorers[leagueId] || [];
     }
 };
 
