@@ -289,8 +289,7 @@ const transformFixture = (fixture, lang) => {
         fixture.fixture.status.short === 'ET' ||
         fixture.fixture.status.short === 'P';
 
-    const isUpcoming = fixture.fixture.status.short === 'NS' ||
-        fixture.fixture.status.short === 'TBD';
+
 
     const isCompleted = fixture.fixture.status.short === 'FT' ||
         fixture.fixture.status.short === 'AET' ||
@@ -515,7 +514,6 @@ export const fetchMatchDetails = async (fixtureId, lang = 'en') => {
         // Actually for LIVE matches we might want shorter cache, but let's stick to simple for now.
         cacheUtils.set(cacheKey, details);
 
-        return details;
         return details;
     } catch (error) {
         console.error('Error fetching match details:', error);

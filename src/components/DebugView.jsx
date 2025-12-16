@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Trophy, Calendar, AlertCircle } from 'lucide-react';
 
 const API_KEY = import.meta.env.VITE_API_FOOTBALL_KEY;

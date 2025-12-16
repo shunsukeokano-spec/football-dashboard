@@ -20,15 +20,9 @@ export const Schedule = ({ language = 'en', onMatchClick }) => {
         loadMatches();
     }, [date, language]);
 
-    const handleDateChange = (days) => {
-        const newDate = new Date(date);
-        newDate.setDate(newDate.getDate() + days);
-        setDate(newDate.toISOString().split('T')[0]);
-    };
 
-    const handleToday = () => {
-        setDate(new Date().toISOString().split('T')[0]);
-    };
+
+
 
     // Group matches by league
     const matchesByLeague = matches.reduce((acc, match) => {

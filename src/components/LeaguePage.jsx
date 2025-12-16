@@ -5,7 +5,7 @@ import { StandingsTable } from './StandingsTable';
 import { TopScorers } from './TopScorers';
 import { MatchCard } from './MatchCard';
 
-export const LeaguePage = ({ leagueId, onClose, onTeamClick, onMatchClick, matches, language = 'en' }) => {
+export const LeaguePage = ({ leagueId, onTeamClick, onMatchClick, matches, language = 'en' }) => {
     const [activeTab, setActiveTab] = useState('matches');
     const [standings, setStandings] = useState(null);
     const [topScorers, setTopScorers] = useState(null);

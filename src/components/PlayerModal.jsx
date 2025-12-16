@@ -4,15 +4,13 @@ import { fetchPlayerStats } from '../services/apiDataService';
 import { PlayerStats } from './PlayerStats';
 
 export const PlayerModal = ({ player, teamName, onClose }) => {
-    if (!player) return null;
-
     const [activeTab, setActiveTab] = useState('overview');
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const loadStats = async () => {
-            if (player.id) {
+            if (player?.id) {
                 setLoading(true);
                 const data = await fetchPlayerStats(player.id);
                 if (data && data.statistics && data.statistics.length > 0) {
@@ -23,7 +21,9 @@ export const PlayerModal = ({ player, teamName, onClose }) => {
         };
 
         loadStats();
-    }, [player.id]);
+    }, [player?.id]);
+
+    if (!player) return null;
 
     const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(`${player.name} ${teamName} football player`)}`;
     const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${player.name} ${teamName} highlights`)}`;

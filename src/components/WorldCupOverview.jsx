@@ -29,7 +29,7 @@ export const WorldCupOverview = () => {
         for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const hasMatches = matchDates.has(dateStr);
-            const isFuture = false; // Could check against real date if needed
+
 
             days.push(
                 <button
@@ -37,8 +37,8 @@ export const WorldCupOverview = () => {
                     disabled={!hasMatches}
                     onClick={() => scrollToDate(dateStr)}
                     className={`h-8 md:h-10 w-full rounded-md flex items-center justify-center text-xs md:text-sm font-medium transition-all ${hasMatches
-                            ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500 hover:text-white hover:shadow-[0_0_10px_rgba(59,130,246,0.5)] cursor-pointer'
-                            : 'text-slate-700 cursor-default'
+                        ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500 hover:text-white hover:shadow-[0_0_10px_rgba(59,130,246,0.5)] cursor-pointer'
+                        : 'text-slate-700 cursor-default'
                         }`}
                 >
                     {day}

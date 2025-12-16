@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, MapPin, Users, Shirt, Star, Trophy } from 'lucide-react';
 import { fetchTeamDetails } from '../services/apiDataService';
-import { translations } from '../utils/translations';
+
 import { PlayerModal } from './PlayerModal';
 
 export const TeamDetails = ({ teamId, onClose, onLeagueClick, language = 'en', favoriteTeams = [], toggleFavorite }) => {
@@ -9,7 +9,7 @@ export const TeamDetails = ({ teamId, onClose, onLeagueClick, language = 'en', f
     const [loading, setLoading] = useState(true);
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const isFavorite = favoriteTeams.includes(teamId);
-    const t = translations[language] || translations['en'];
+
 
     const handleToggleFavorite = () => {
         if (toggleFavorite) {
@@ -144,9 +144,9 @@ export const TeamDetails = ({ teamId, onClose, onLeagueClick, language = 'en', f
                                                             <span
                                                                 key={idx}
                                                                 className={`w-4 h-4 flex items-center justify-center rounded-sm text-[10px] font-bold ${result === 'W' ? 'bg-green-500 text-white' :
-                                                                        result === 'D' ? 'bg-yellow-500 text-white' :
-                                                                            result === 'L' ? 'bg-red-500 text-white' :
-                                                                                'bg-muted text-muted-foreground'
+                                                                    result === 'D' ? 'bg-yellow-500 text-white' :
+                                                                        result === 'L' ? 'bg-red-500 text-white' :
+                                                                            'bg-muted text-muted-foreground'
                                                                     }`}
                                                             >
                                                                 {result}

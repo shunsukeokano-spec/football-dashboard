@@ -1,4 +1,4 @@
-import { addMinutes, format } from 'date-fns';
+import { addMinutes } from 'date-fns';
 
 const TEAMS = [
     // Premier League

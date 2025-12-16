@@ -101,17 +101,9 @@ export const groups = {
 const groupStageMatches = [];
 let matchIdCounter = 1;
 
-// Dates for Group Stage (June 11 - June 27)
-const startMonth = 6; // June
-const startDay = 11;
-
-const groupOrder = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
-
 // Distribute matches across dates to avoid clumps
 // We have 12 groups * 6 matches = 72 matches in group stage
 // Spread over ~16 days = ~4.5 matches per day
-let dateOffset = 0;
-let matchesOnDate = 0;
 
 Object.keys(groups).forEach((groupId, groupIndex) => {
     const teams = groups[groupId];

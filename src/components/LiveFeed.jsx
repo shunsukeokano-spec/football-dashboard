@@ -1,9 +1,9 @@
 import React from 'react';
 import { Activity } from 'lucide-react';
-import { translations } from '../utils/translations';
+
 
 export const LiveFeed = ({ matches, language = 'en' }) => {
-    const t = translations[language] || translations['en'];
+
 
     // Aggregate all events from all live matches
     const allEvents = matches

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { LayoutDashboard, Trophy, Calendar, Settings, User, Menu, X, ChevronLeft, ChevronRight, Globe } from 'lucide-react';
 import { translations } from '../utils/translations';
 
+// eslint-disable-next-line no-unused-vars
 const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
     <div
         onClick={onClick}

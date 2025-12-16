@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Star, ChevronRight } from 'lucide-react';
 
-export const FavoriteTeams = ({ onTeamClick, language = 'en' }) => {
+export const FavoriteTeams = ({ onTeamClick }) => {
     const [favorites, setFavorites] = useState([]);
     const [teamData, setTeamData] = useState({});
 
