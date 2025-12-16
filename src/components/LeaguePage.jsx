@@ -1,39 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { X, Trophy, Target, Calendar } from 'lucide-react';
-import { fetchLeagueStandings, fetchTopScorers, LEAGUE_NAMES, getCurrentSeason, getDisplaySeason } from '../services/apiDataService';
-import { StandingsTable } from './StandingsTable';
-import { TopScorers } from './TopScorers';
+import React, { useState } from 'react';
+import { Calendar } from 'lucide-react';
+import { LEAGUE_NAMES, getDisplaySeason } from '../services/apiDataService';
 import { MatchCard } from './MatchCard';
 
-export const LeaguePage = ({ leagueId, onTeamClick, onMatchClick, matches, language = 'en' }) => {
+export const LeaguePage = ({ leagueId, onMatchClick, matches, language = 'en' }) => {
     const [activeTab, setActiveTab] = useState('matches');
-    const [standings, setStandings] = useState(null);
-    const [topScorers, setTopScorers] = useState(null);
-    const [loading, setLoading] = useState(true);
 
     const leagueName = LEAGUE_NAMES[leagueId] || 'League';
     const displaySeason = getDisplaySeason();
-
-    useEffect(() => {
-        const loadLeagueData = async () => {
-            setLoading(true);
-
-            const currentSeason = getCurrentSeason();
-
-            const [standingsData, scorersData] = await Promise.all([
-                fetchLeagueStandings(leagueId, currentSeason),
-                fetchTopScorers(leagueId, currentSeason, 10)
-            ]);
-
-            setStandings(standingsData);
-            setTopScorers(scorersData);
-            setLoading(false);
-        };
-
-        if (leagueId) {
-            loadLeagueData();
-        }
-    }, [leagueId]);
 
     // Filter matches for this league
     const leagueMatches = matches.filter(m => m.league === leagueName);
@@ -42,9 +16,7 @@ export const LeaguePage = ({ leagueId, onTeamClick, onMatchClick, matches, langu
         .slice(0, 10);
 
     const tabs = [
-        { id: 'matches', label: 'Recent Matches', icon: Calendar },
-        { id: 'standings', label: 'Standings', icon: Trophy },
-        { id: 'scorers', label: 'Top Scorers', icon: Target }
+        { id: 'matches', label: 'Recent Matches', icon: Calendar }
     ];
 
     return (
@@ -77,58 +49,26 @@ export const LeaguePage = ({ leagueId, onTeamClick, onMatchClick, matches, langu
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-                {loading ? (
-                    <div className="flex justify-center py-20">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                    </div>
-                ) : (
-                    <>
-                        {activeTab === 'standings' && (
-                            standings ? (
-                                <StandingsTable standings={standings} onTeamClick={onTeamClick} />
-                            ) : (
-                                <div className="text-center py-20 text-muted-foreground animate-in fade-in zoom-in-95 duration-300">
-                                    <Trophy size={48} className="mx-auto mb-4 opacity-20" />
-                                    <p className="text-lg font-medium">No standings available</p>
-                                    <p className="text-sm">Data might be missing for the current season</p>
-                                </div>
-                            )
-                        )}
-
-                        {activeTab === 'scorers' && (
-                            topScorers && topScorers.length > 0 ? (
-                                <TopScorers scorers={topScorers} onTeamClick={onTeamClick} />
-                            ) : (
-                                <div className="text-center py-20 text-muted-foreground animate-in fade-in zoom-in-95 duration-300">
-                                    <Target size={48} className="mx-auto mb-4 opacity-20" />
-                                    <p className="text-lg font-medium">No top scorers available</p>
-                                    <p className="text-sm">Data might be missing for the current season</p>
-                                </div>
-                            )
-                        )}
-
-                        {activeTab === 'matches' && (
-                            <div>
-                                {recentMatches.length > 0 ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {recentMatches.map((match) => (
-                                            <MatchCard
-                                                key={match.id}
-                                                match={match}
-                                                onClick={() => onMatchClick(match.id)}
-                                                language={language}
-                                            />
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-20 text-muted-foreground">
-                                        <Calendar size={48} className="mx-auto mb-4 opacity-50" />
-                                        <p>No recent matches available for this league</p>
-                                    </div>
-                                )}
+                {activeTab === 'matches' && (
+                    <div>
+                        {recentMatches.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {recentMatches.map((match) => (
+                                    <MatchCard
+                                        key={match.id}
+                                        match={match}
+                                        onClick={() => onMatchClick(match.id)}
+                                        language={language}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-20 text-muted-foreground">
+                                <Calendar size={48} className="mx-auto mb-4 opacity-50" />
+                                <p>No recent matches available for this league</p>
                             </div>
                         )}
-                    </>
+                    </div>
                 )}
             </div>
         </div>

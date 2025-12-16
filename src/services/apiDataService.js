@@ -1,5 +1,5 @@
 import { getTeamName, translations } from '../utils/translations';
-import { mockMatches, mockStandings, mockTopScorers } from '../data/mockData';
+import { mockMatches } from '../data/mockData';
 
 const API_KEY = import.meta.env.VITE_API_FOOTBALL_KEY;
 const API_BASE_URL = 'https://v3.football.api-sports.io';
@@ -448,12 +448,13 @@ export const subscribeToUpdates = (callback, lang = 'en') => {
     }
 
     // Poll every 5 minutes for updates (reduced from 60s to save API calls)
-    const intervalId = setInterval(loadMatches, 300000);
+    // DISABLED: Preventing daily rate limit hits. User must refresh manually.
+    // const intervalId = setInterval(loadMatches, 300000);
 
     return () => {
         console.log('Unsubscribing from updates...');
         listeners = listeners.filter((l) => l !== callback);
-        clearInterval(intervalId);
+        // clearInterval(intervalId);
     };
 };
 
@@ -735,10 +736,7 @@ export const fetchLeagueStandings = async (leagueId, season = getCurrentSeason()
                 console.log(`Retrying standings for league ${leagueId} with season ${season - 1}`);
                 return fetchLeagueStandings(leagueId, season - 1);
             }
-
-            // Fallback to Mock Data
-            console.log(`[Fallback] Using Mock Standings for league ${leagueId}`);
-            return mockStandings[leagueId] || [];
+            return null;
         }
 
         const standings = data.response[0].league.standings[0].map(team => ({
@@ -764,10 +762,7 @@ export const fetchLeagueStandings = async (leagueId, season = getCurrentSeason()
         // Fallback to stale cache
         const staleData = cacheUtils.getStale(cacheKey);
         if (staleData) return staleData;
-
-        // Final fallback to Mock Data
-        console.log(`[Fallback] Using Mock Standings for league ${leagueId}`);
-        return mockStandings[leagueId] || [];
+        return null;
     }
 };
 
@@ -808,11 +803,7 @@ export const fetchTopScorers = async (leagueId, season, limit = 10) => {
 
         if (data.errors && Object.keys(data.errors).length > 0) {
             console.error('API returned errors for scorers:', data.errors);
-            const staleData = cacheUtils.getStale(cacheKey);
-            if (staleData) return staleData;
-
-            console.log(`[Fallback] Using Mock Top Scorers for league ${leagueId}`);
-            return mockTopScorers[leagueId] || [];
+            return null;
         }
 
         if (!data.response || data.response.length === 0) {
@@ -823,10 +814,7 @@ export const fetchTopScorers = async (leagueId, season, limit = 10) => {
                 console.log(`Retrying scorers for league ${leagueId} with season ${season - 1}`);
                 return fetchTopScorers(leagueId, season - 1, limit);
             }
-
-            // Fallback to Mock Data
-            console.log(`[Fallback] Using Mock Top Scorers for league ${leagueId}`);
-            return mockTopScorers[leagueId] || [];
+            return null;
         }
 
         const topScorers = data.response.slice(0, limit).map((item, index) => ({
@@ -846,14 +834,7 @@ export const fetchTopScorers = async (leagueId, season, limit = 10) => {
         return topScorers;
     } catch (error) {
         console.error('Error fetching top scorers:', error);
-
-        // Fallback to stale cache
-        const staleData = cacheUtils.getStale(cacheKey);
-        if (staleData) return staleData;
-
-        // Final fallback to Mock Data
-        console.log(`[Fallback] Using Mock Top Scorers for league ${leagueId}`);
-        return mockTopScorers[leagueId] || [];
+        return [];
     }
 };
 

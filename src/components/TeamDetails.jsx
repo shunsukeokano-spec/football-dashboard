@@ -4,7 +4,7 @@ import { fetchTeamDetails } from '../services/apiDataService';
 
 import { PlayerModal } from './PlayerModal';
 
-export const TeamDetails = ({ teamId, onClose, onLeagueClick, language = 'en', favoriteTeams = [], toggleFavorite }) => {
+export const TeamDetails = ({ teamId, onClose, language = 'en', favoriteTeams = [], toggleFavorite }) => {
     const [details, setDetails] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedPlayer, setSelectedPlayer] = useState(null);
@@ -108,69 +108,7 @@ export const TeamDetails = ({ teamId, onClose, onLeagueClick, language = 'en', f
                                     )}
                                 </div>
 
-                                {/* League Standing & Quick Links */}
-                                {details.standing && (
-                                    <div className="mt-4 pt-4 border-t border-border">
-                                        <div className="flex items-center space-x-2 mb-3">
-                                            <Trophy size={16} className="text-primary" />
-                                            <span className="text-sm">
-                                                <span className="text-muted-foreground">League Position:</span>{' '}
-                                                <button
-                                                    onClick={() => onLeagueClick && onLeagueClick(details.leagueId)}
-                                                    className="font-bold text-primary hover:underline"
-                                                >
-                                                    #{details.standing.position} in {details.standing.leagueName}
-                                                </button>
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-wrap gap-4 text-xs">
-                                            <div className="flex items-center space-x-1 text-muted-foreground">
-                                                <span className="font-medium">Played:</span>
-                                                <span>{details.standing.played}</span>
-                                            </div>
-                                            <div className="flex items-center space-x-1 text-muted-foreground">
-                                                <span className="font-medium">W-D-L:</span>
-                                                <span>{details.standing.won}-{details.standing.drawn}-{details.standing.lost}</span>
-                                            </div>
-                                            <div className="flex items-center space-x-1">
-                                                <span className="font-medium text-muted-foreground">Points:</span>
-                                                <span className="font-bold text-primary">{details.standing.points}</span>
-                                            </div>
-                                            {details.standing.form && (
-                                                <div className="flex items-center space-x-1">
-                                                    <span className="font-medium text-muted-foreground">Form:</span>
-                                                    <div className="flex space-x-0.5">
-                                                        {details.standing.form.split('').slice(-5).map((result, idx) => (
-                                                            <span
-                                                                key={idx}
-                                                                className={`w-4 h-4 flex items-center justify-center rounded-sm text-[10px] font-bold ${result === 'W' ? 'bg-green-500 text-white' :
-                                                                    result === 'D' ? 'bg-yellow-500 text-white' :
-                                                                        result === 'L' ? 'bg-red-500 text-white' :
-                                                                            'bg-muted text-muted-foreground'
-                                                                    }`}
-                                                            >
-                                                                {result}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="mt-3">
-                                            <a
-                                                href={`https://www.youtube.com/results?search_query=${encodeURIComponent(details.name + ' highlights')}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center space-x-2 text-sm text-red-500 hover:text-red-400 transition-colors"
-                                            >
-                                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                                                </svg>
-                                                <span>Watch Highlights</span>
-                                            </a>
-                                        </div>
-                                    </div>
-                                )}
+
                             </div>
                         </div>
                     )}
